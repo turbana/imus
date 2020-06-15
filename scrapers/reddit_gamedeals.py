@@ -17,10 +17,9 @@ class Scraper(scraper.AbstractScraper):
         return REGEX.search(data["title"])
 
     def action(self, data):
-        # print("  - %s" % data["title"])
-        body = '<a href="%s">reddit comments</a>' % data["comments"]
+        body = "reddit comments - %s" % data["comments"]
         if data["comments"] != data["url"]:
-            body += '<br/><a href="%s">store page</a>' % data["url"]
+            body += "\nstore page - %s" % data["url"]
         self.notify(title="Free Game - %s" % data["title"],
                     body=body,
                     suppress_time=NOTIFY_TIME)

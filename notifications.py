@@ -1,22 +1,25 @@
+import email.mime.text
 import hashlib
 import os
 import os.path
 import re
+import smtplib
+import ssl
 import time
 
-
-CACHE_DIR = "cache"
+import options
 
 
 def notify(msg):
     if not should_notify(msg):
         return
-    touch(os.path.join(CACHE_DIR, get_hash(msg)))
-    print(msg)
+    # print(msg)
+    send_email(msg)
+    touch(os.path.join(options.CACHE_DIR, get_hash(msg)))
 
 
 def should_notify(msg):
-    filename = os.path.join(CACHE_DIR, get_hash(msg))
+    filename = os.path.join(options.CACHE_DIR, get_hash(msg))
     if os.path.exists(filename):
         mtime = os.stat(filename).st_mtime
         delta = time.time() - mtime
@@ -45,6 +48,18 @@ def touch(fname, mode=0o666, dir_fd=None, **kwargs):
     with os.fdopen(os.open(fname, flags=flags, mode=mode, dir_fd=dir_fd)) as f:
         os.utime(f.fileno() if os.utime in os.supports_fd else fname,
                  dir_fd=None if os.supports_fd else dir_fd, **kwargs)
+
+
+def send_email(msg):
+    ssl_context = ssl.create_default_context()
+    with smtplib.SMTP_SSL(options.SMTP_HOSTNAME, options.SMTP_PORT,
+                          context=ssl_context) as smtp:
+        smtp.login(options.SMTP_USERNAME, options.SMTP_PASSWORD)
+        message = email.mime.text.MIMEText(msg["body"])
+        message["Subject"] = msg["title"]
+        message["From"] = options.SMTP_USERNAME
+        message["To"] = options.EMAIL_ADDRESS
+        smtp.send_message(message)
 
 
 _time_regex = re.compile(r'([0-9]+) *([smhdwy])')
