@@ -26,12 +26,13 @@ logging:
       formatter: simple
       stream: ext://sys.stdout
     file:
-      class: logging.handlers.RotatingFileHandler
+      class: logging.handlers.TimedRotatingFileHandler
       level: DEBUG
       formatter: detailed
       filename: log/imus.log
-      maxBytes: 104960000 #100kb
-      backupCount: 10
+      interval: 1
+      when: d
+      backupCount: 7
     email:
       class: customlogging.BufferingEmailHandler
       level: DEBUG
