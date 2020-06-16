@@ -94,7 +94,7 @@ class AbstractScraper(ABC):
         raw_data = self.fetch(self.url)
         data_rows = self.parse(raw_data)
         for data in data_rows:
+            logging.debug("found data: %s" % data)
             if self.match(data):
                 logging.info("found match")
-                logging.debug(str(data))
                 self.action(data)
