@@ -18,6 +18,9 @@ def notify(msg):
                 msg["options"]["suppress_time"])
         )
         return
+    if options.dry_run:
+        logging.info("aborting notification: --dry-run is set")
+        return
     send_email(msg)
     filename = os.path.join(options.cache_dir, get_hash(msg))
     logging.debug("saving notification at %s" % filename)

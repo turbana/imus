@@ -82,6 +82,8 @@ def arguments():
                        action="store_true", dest="list_scrapers")
     parser.add_argument("-v", "--verbosity", action="count", default=0,
                         help="increase output verbosity")
+    parser.add_argument("--dry-run", help="don't send notifications",
+                        action="store_true")
     return parser.parse_args()
 
 
