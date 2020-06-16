@@ -65,6 +65,10 @@ def load_options(args):
     # add options.scraper_dir to the module search path
     sys.path.append(options.scraper_dir)
 
+    # remove logging to console when --quiet
+    if options.quiet:
+        options.logging.root.handlers.remove("console")
+
 
 def configure_logging():
     if options.verbosity == 1:
@@ -83,6 +87,8 @@ def arguments():
     parser.add_argument("-v", "--verbosity", action="count", default=0,
                         help="increase output verbosity")
     parser.add_argument("--dry-run", help="don't send notifications",
+                        action="store_true")
+    parser.add_argument("-q", "--quiet", help="don't write to stdout",
                         action="store_true")
     return parser.parse_args()
 
