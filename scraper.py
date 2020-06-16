@@ -31,7 +31,8 @@ class AbstractScraper(ABC):
     def fetch(self, url):
         return open("data").read()
         logging.info("fetching %s" % url)
-        page = requests.get(url)
+        http_headers = {"User-Agent": options.user_agent}
+        page = requests.get(url, headers=http_headers)
         if page.status_code != 200:
             message = "received status code of %s from %s" % (
                 page.status_code, url)
