@@ -2,10 +2,14 @@ from abc import ABC, abstractmethod
 import logging
 import os.path
 import requests
+import urllib3
 
 import notifications
 from options import options
 import util
+
+
+AMAZON_BLOCKED_MESSAGE = "To discuss automated access to Amazon data please contact"
 
 
 class FetchError(Exception):
@@ -49,11 +53,32 @@ class AbstractScraper(ABC):
             logging.error(message)
             raise FetchError(message)
 
+        # check for blocked response
+        if AMAZON_BLOCKED_MESSAGE in page.text:
+            message = "request blocked by amazon: %s" % url
+            logging.error(message)
+            raise FetchError(message)
+
         # save response
         logging.debug("writing %d bytes to cache file %s" % (
             len(page.content), cache_filename))
         open(cache_filename, "w").write(page.text)
         return page.text
+
+    def http_headers(url):
+        return {
+            "authority": urllib3.util.parse_url(url).host,
+            "pragma": "no-cache",
+            "cache-control": "no-cache",
+            "dnt": "1",
+            "upgrade-insecure-requests": "1",
+            "user-agent": options.user_agent,
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+            "sec-fetch-site": "none",
+            "sec-fetch-mode": "navigate",
+            "sec-fetch-dest": "document",
+            "accept-language": "en-US,en-GB;q=0.9,en;q=0.8",
+        }
 
     def notify(self, title, body, suppress_time):
         msg = {
@@ -70,6 +95,6 @@ class AbstractScraper(ABC):
         data_rows = self.parse(raw_data)
         for data in data_rows:
             if self.match(data):
-                logging.info("found match: %s" % data["title"])
+                logging.info("found match")
                 logging.debug(str(data))
                 self.action(data)
