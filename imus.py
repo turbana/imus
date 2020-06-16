@@ -99,4 +99,7 @@ if __name__ == "__main__":
     try:
         sys.exit(main())
     except ImusCloseException:
-        sys.exit(1)
+        pass
+    except Exception:
+        logging.exception("unhandled exception")
+    sys.exit(1)

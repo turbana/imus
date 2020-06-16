@@ -30,6 +30,12 @@ logging:
       filename: log/imus.log
       maxBytes: 104960000 #100kb
       backupCount: 10
+    email:
+      class: customlogging.BufferingEmailHandler
+      level: DEBUG
+      flushLevel: ERROR
+      formatter: detailed
+      subject: "Error in imus.py"
   root:
     level: DEBUG
-    handlers: [console, file]
+    handlers: [console, file, email]
