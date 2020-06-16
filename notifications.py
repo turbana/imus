@@ -8,7 +8,7 @@ import smtplib
 import ssl
 import time
 
-import options
+from options import options
 
 
 def notify(msg):
@@ -19,11 +19,11 @@ def notify(msg):
         )
         return
     send_email(msg)
-    touch(os.path.join(options.CACHE_DIR, get_hash(msg)))
+    touch(os.path.join(options.cache_dir, get_hash(msg)))
 
 
 def should_notify(msg):
-    filename = os.path.join(options.CACHE_DIR, get_hash(msg))
+    filename = os.path.join(options.cache_dir, get_hash(msg))
     if os.path.exists(filename):
         mtime = os.stat(filename).st_mtime
         delta = time.time() - mtime
@@ -55,16 +55,16 @@ def touch(fname, mode=0o666, dir_fd=None, **kwargs):
 
 
 def send_email(msg):
-    logging.info("sending email to %s: %s" % (options.EMAIL_ADDRESS,
+    logging.info("sending email to %s: %s" % (options.email_address,
                                               msg["title"]))
     ssl_context = ssl.create_default_context()
-    with smtplib.SMTP_SSL(options.SMTP_HOSTNAME, options.SMTP_PORT,
+    with smtplib.SMTP_SSL(options.smtp_hostname, options.smtp_port,
                           context=ssl_context) as smtp:
-        smtp.login(options.SMTP_USERNAME, options.SMTP_PASSWORD)
+        smtp.login(options.smtp_username, options.smtp_password)
         message = email.mime.text.MIMEText(msg["body"])
         message["Subject"] = msg["title"]
-        message["From"] = options.SMTP_USERNAME
-        message["To"] = options.EMAIL_ADDRESS
+        message["From"] = options.smtp_username
+        message["To"] = options.email_address
         smtp.send_message(message)
 
 

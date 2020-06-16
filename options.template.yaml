@@ -1,0 +1,9 @@
+# copy this file to options.yaml
+
+cache_dir: cache
+scraper_dir: scrapers
+smtp_hostname: smtp.gmail.com
+smtp_port: 465
+smtp_username: <from email address>
+smtp_password: <from email password>
+email_address: <to email address>

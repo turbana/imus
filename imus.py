@@ -7,17 +7,24 @@ import os.path
 import sys
 import yaml
 
+from options import options
 
-SCRAPER_DIR = "scrapers"
+
+CONFIG_FILENAME = "options.yaml"
+
+
+class ImusCloseException(Exception):
+    pass
 
 
 def main():
     args = arguments()
-    configure_logging(args)
+    load_options(args)
+    configure_logging()
     scrapers = possible_scrapers()
-    scraper = args.scraper
+    scraper = options.scraper
 
-    if args.list:
+    if options.list_scrapers:
         print("Possible scrapers:")
         for scraper in sorted(scrapers):
             print("  " + scraper)
@@ -28,18 +35,29 @@ def main():
         return 1
 
     logging.info("starting run of %s" % scraper)
-    module_name = "%s.%s" % (SCRAPER_DIR, scraper)
+    module_name = "%s.%s" % (options.scraper_dir, scraper)
     module = importlib.import_module(module_name)
     obj = module.Scraper()
     obj.check()
 
 
-def configure_logging(args):
+def load_options(args):
+    try:
+        with open(CONFIG_FILENAME, "r") as f:
+            config = yaml.load(f, Loader=yaml.FullLoader)
+    except FileNotFoundError:
+        logging.error("could not find %s" % CONFIG_FILENAME)
+        raise ImusCloseException()
+    options.update(config)
+    options.update(vars(args))
+
+
+def configure_logging():
     with open("logging.yaml") as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
-    if args.verbosity == 1:
+    if options.verbosity == 1:
         config["handlers"]["console"]["level"] = "INFO"
-    elif args.verbosity >= 2:
+    elif options.verbosity >= 2:
         config["handlers"]["console"]["level"] = "DEBUG"
     logging.config.dictConfig(config)
 
@@ -49,15 +67,16 @@ def arguments():
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--scraper", help="name of scraper to run")
     group.add_argument("--list", help="list possible scrapers",
-                       action="store_true")
+                       action="store_true", dest="list_scrapers")
     parser.add_argument("-v", "--verbosity", action="count", default=0,
                         help="increase output verbosity")
     return parser.parse_args()
 
 
 def possible_scrapers():
+    # XXX
     base = os.path.dirname(sys.argv[0])
-    scraper_dir = os.path.join(base, SCRAPER_DIR)
+    scraper_dir = os.path.join(base, options.scraper_dir)
     return [scraper[:-3]
             for scraper in os.listdir(scraper_dir)
             if os.path.isfile(os.path.join(scraper_dir, scraper))
@@ -66,4 +85,7 @@ def possible_scrapers():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except ImusCloseException:
+        sys.exit(1)
