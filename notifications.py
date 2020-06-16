@@ -1,5 +1,6 @@
 import email.mime.text
 import hashlib
+import logging
 import os
 import os.path
 import re
@@ -12,8 +13,11 @@ import options
 
 def notify(msg):
     if not should_notify(msg):
+        logging.info(
+            "matched within suppress_time of %s: skipping notification" % (
+                msg["options"]["suppress_time"])
+        )
         return
-    # print(msg)
     send_email(msg)
     touch(os.path.join(options.CACHE_DIR, get_hash(msg)))
 
@@ -51,6 +55,8 @@ def touch(fname, mode=0o666, dir_fd=None, **kwargs):
 
 
 def send_email(msg):
+    logging.info("sending email to %s: %s" % (options.EMAIL_ADDRESS,
+                                              msg["title"]))
     ssl_context = ssl.create_default_context()
     with smtplib.SMTP_SSL(options.SMTP_HOSTNAME, options.SMTP_PORT,
                           context=ssl_context) as smtp:

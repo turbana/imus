@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import logging
 import requests
 
 import notifications
@@ -12,7 +13,8 @@ class AbstractScraper(ABC):
     def __init__(self, url, parser):
         self.url = url
         self.parser_module = parser
-        print("url=%s, parser=%s" % (url, parser))
+        logging.debug("configured scraper with parser=%s, url=%s" % (
+            parser.__name__, url))
 
     @abstractmethod
     def action(self, data):
@@ -28,12 +30,16 @@ class AbstractScraper(ABC):
 
     def fetch(self, url):
         return open("data").read()
+        logging.info("fetching %s" % url)
         page = requests.get(url)
         if page.status_code != 200:
-            raise FetchError("received status code of %s from %s" % (
-                page.status_code, url))
+            message = "received status code of %s from %s" % (
+                page.status_code, url)
+            logging.error(message)
+            raise FetchError(message)
         open("data", "wb").write(page.content)
-        return page.content
+        logging.debug("received %d bytes" % len(page.content))
+        return str(page.content)
 
     def notify(self, title, body, suppress_time):
         msg = {
@@ -50,4 +56,6 @@ class AbstractScraper(ABC):
         data_rows = self.parse(raw_data)
         for data in data_rows:
             if self.match(data):
+                logging.info("found match: %s" % data["title"])
+                logging.debug(str(data))
                 self.action(data)

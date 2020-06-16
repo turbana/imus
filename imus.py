@@ -1,8 +1,11 @@
 import argparse
 import importlib
+import logging
+import logging.config
 import os
 import os.path
 import sys
+import yaml
 
 
 SCRAPER_DIR = "scrapers"
@@ -10,6 +13,7 @@ SCRAPER_DIR = "scrapers"
 
 def main():
     args = arguments()
+    configure_logging(args)
     scrapers = possible_scrapers()
     scraper = args.scraper
 
@@ -20,14 +24,24 @@ def main():
         return 0
 
     if scraper not in scrapers:
-        print("error: scraper %s not found" % scraper)
+        logging.error("scraper %s not found" % scraper)
         return 1
 
-    print("running %s" % scraper)
+    logging.info("starting run of %s" % scraper)
     module_name = "%s.%s" % (SCRAPER_DIR, scraper)
     module = importlib.import_module(module_name)
     obj = module.Scraper()
     obj.check()
+
+
+def configure_logging(args):
+    with open("logging.yaml") as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+    if args.verbosity == 1:
+        config["handlers"]["console"]["level"] = "INFO"
+    elif args.verbosity >= 2:
+        config["handlers"]["console"]["level"] = "DEBUG"
+    logging.config.dictConfig(config)
 
 
 def arguments():
@@ -36,6 +50,8 @@ def arguments():
     group.add_argument("--scraper", help="name of scraper to run")
     group.add_argument("--list", help="list possible scrapers",
                        action="store_true")
+    parser.add_argument("-v", "--verbosity", action="count", default=0,
+                        help="increase output verbosity")
     return parser.parse_args()
 
 
