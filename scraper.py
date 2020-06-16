@@ -4,6 +4,8 @@ import os.path
 import requests
 import urllib3
 
+import fake_useragent
+
 import notifications
 from options import options
 import util
@@ -45,8 +47,11 @@ class AbstractScraper(ABC):
 
         # fetch page
         logging.info("fetching %s" % url)
-        http_headers = {"User-Agent": options.user_agent}
-        page = requests.get(url, headers=http_headers)
+        # http_headers = {"User-Agent": options.user_agent}
+        http_headers = self.http_headers(url)
+        logging.debug("http-headers: %s" % http_headers)
+        page = requests.get(url, headers=http_headers,
+                            timeout=options.requests_timeout)
         if page.status_code != 200:
             message = "received status code of %s from %s" % (
                 page.status_code, url)
@@ -64,21 +69,6 @@ class AbstractScraper(ABC):
             len(page.content), cache_filename))
         open(cache_filename, "w").write(page.text)
         return page.text
-
-    def http_headers(url):
-        return {
-            "authority": urllib3.util.parse_url(url).host,
-            "pragma": "no-cache",
-            "cache-control": "no-cache",
-            "dnt": "1",
-            "upgrade-insecure-requests": "1",
-            "user-agent": options.user_agent,
-            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-            "sec-fetch-site": "none",
-            "sec-fetch-mode": "navigate",
-            "sec-fetch-dest": "document",
-            "accept-language": "en-US,en-GB;q=0.9,en;q=0.8",
-        }
 
     def notify(self, title, body, suppress_time):
         msg = {
@@ -98,3 +88,21 @@ class AbstractScraper(ABC):
             if self.match(data):
                 logging.info("found match")
                 self.action(data)
+
+    @staticmethod
+    def http_headers(url):
+        return {
+            # "user-agent": options.user_agent,
+            "user-agent": fake_useragent.UserAgent().random,
+            "authority": urllib3.util.parse_url(url).host,
+            "Referer": url,
+            "pragma": "no-cache",
+            "cache-control": "no-cache",
+            "dnt": "1",
+            "upgrade-insecure-requests": "1",
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+            "sec-fetch-site": "none",
+            "sec-fetch-mode": "navigate",
+            "sec-fetch-dest": "document",
+            "accept-language": "en-US,en-GB;q=0.9,en;q=0.8",
+        }
