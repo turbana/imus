@@ -1,8 +1,11 @@
 from abc import ABC, abstractmethod
 import logging
+import os.path
 import requests
 
 import notifications
+from options import options
+import util
 
 
 class FetchError(Exception):
@@ -29,7 +32,14 @@ class AbstractScraper(ABC):
         return parser.parse(raw_data)
 
     def fetch(self, url):
-        return open("data").read()
+        # check cache
+        cache_filename = os.path.join(options.cache_dir,
+                                      util.get_hash(url) + ".html")
+        if options.cache and os.path.isfile(cache_filename):
+            logging.info("using cache for %s" % url)
+            return open(cache_filename).read()
+
+        # fetch page
         logging.info("fetching %s" % url)
         http_headers = {"User-Agent": options.user_agent}
         page = requests.get(url, headers=http_headers)
@@ -38,9 +48,12 @@ class AbstractScraper(ABC):
                 page.status_code, url)
             logging.error(message)
             raise FetchError(message)
-        open("data", "wb").write(page.content)
-        logging.debug("received %d bytes" % len(page.content))
-        return str(page.content)
+
+        # save response
+        logging.debug("writing %d bytes to cache file %s" % (
+            len(page.content), cache_filename))
+        open(cache_filename, "w").write(page.text)
+        return page.text
 
     def notify(self, title, body, suppress_time):
         msg = {

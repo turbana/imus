@@ -90,6 +90,8 @@ def arguments():
                         action="store_true")
     parser.add_argument("-q", "--quiet", help="don't write to stdout",
                         action="store_true")
+    parser.add_argument("--cache", help="use HTTP cache if available",
+                        action="store_true")
     return parser.parse_args()
 
 

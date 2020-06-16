@@ -1,5 +1,4 @@
 import email.mime.text
-import hashlib
 import logging
 import os
 import os.path
@@ -9,6 +8,7 @@ import ssl
 import time
 
 from options import options
+import util
 
 
 def notify(msg):
@@ -19,7 +19,7 @@ def notify(msg):
         )
         return
     send_email(msg)
-    filename = os.path.join(options.cache_dir, get_hash(msg))
+    filename = os.path.join(options.cache_dir, util.get_hash(msg))
     if options.dry_run:
         logging.debug("would have saved notification at %s" % filename)
     else:
@@ -28,7 +28,7 @@ def notify(msg):
 
 
 def should_notify(msg):
-    filename = os.path.join(options.cache_dir, get_hash(msg))
+    filename = os.path.join(options.cache_dir, util.get_hash(msg))
     if os.path.exists(filename):
         mtime = os.stat(filename).st_mtime
         delta = time.time() - mtime
@@ -44,11 +44,6 @@ def parse_time(time_str):
     value = int(match.group(1))
     unit = match.group(2)
     return value * _time_seconds[unit]
-
-
-def get_hash(msg):
-    text = msg["title"] + msg["body"]
-    return hashlib.md5(text.encode("utf-8")).hexdigest()
 
 
 # taken from: http://stackoverflow.com/questions/1158076/ddg#1160227
