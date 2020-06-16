@@ -42,7 +42,8 @@ class AbstractScraper(ABC):
         cache_filename = os.path.join(options.cache_dir,
                                       util.get_hash(url) + ".html")
         if options.cache and os.path.isfile(cache_filename):
-            logging.info("using cache for %s" % url)
+            logging.info("using cache file %s for %s" % (
+                cache_filename, url))
             return open(cache_filename).read()
 
         # fetch page
