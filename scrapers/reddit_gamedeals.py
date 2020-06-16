@@ -20,6 +20,6 @@ class Scraper(scraper.AbstractScraper):
         body = "reddit comments - %s" % data["comments"]
         if data["comments"] != data["url"]:
             body += "\nstore page - %s" % data["url"]
-        self.notify(title="Free Game - %s" % data["title"],
+        self.notify(data["title"],
                     body=body,
                     suppress_time=NOTIFY_TIME)
