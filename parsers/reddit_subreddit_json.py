@@ -21,4 +21,5 @@ class Parser(parser.AbstractParser):
             data.comments = item.num_comments
             data.age = now - item.created
             data.comments_rate = item.num_comments / (data.age / 60)
+            data.flair = item.link_flair_text or ""
             yield data

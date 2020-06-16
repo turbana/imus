@@ -16,9 +16,10 @@ class Scraper(scraper.AbstractScraper):
         super().__init__(URL, parser=reddit_subreddit_json)
 
     def match(self, data):
+        expired = "expired" in data.flair.lower()
         free = REGEX.search(data.title)
         popular = data.comments_rate >= COMMENT_RATE and data.age >= MIN_AGE
-        return free or popular
+        return not expired and (free or popular)
 
     def action(self, data):
         body = "%d reddit comments [%1.02fcpm] - %s" % (
