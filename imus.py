@@ -18,6 +18,10 @@ class ImusCloseException(Exception):
 
 
 def main():
+    # ensure we're in the script's directory
+    dirname = os.path.dirname(sys.argv[0])
+    if dirname:
+        os.chdir(dirname)
     args = arguments()
     load_options(args)
     configure_logging()
@@ -35,8 +39,7 @@ def main():
         return 1
 
     logging.info("starting run of %s" % scraper)
-    module_name = "%s.%s" % (options.scraper_dir, scraper)
-    module = importlib.import_module(module_name)
+    module = importlib.import_module(scraper)
     obj = module.Scraper()
     obj.check()
 
@@ -48,8 +51,19 @@ def load_options(args):
     except FileNotFoundError:
         logging.error("could not find %s" % CONFIG_FILENAME)
         raise ImusCloseException()
+
+    # load configs
     options.update(config)
     options.update(vars(args))
+
+    # expand filenames
+    options.scraper_dir = os.path.expanduser(options.scraper_dir)
+    options.cache_dir = os.path.expanduser(options.cache_dir)
+    options.logging.handlers.file.filename = os.path.expanduser(
+        options.logging.handlers.file.filename)
+
+    # add options.scraper_dir to the module search path
+    sys.path.append(options.scraper_dir)
 
 
 def configure_logging():
@@ -74,12 +88,9 @@ def arguments():
 
 
 def possible_scrapers():
-    # XXX
-    base = os.path.dirname(sys.argv[0])
-    scraper_dir = os.path.join(base, options.scraper_dir)
     return [scraper[:-3]
-            for scraper in os.listdir(scraper_dir)
-            if os.path.isfile(os.path.join(scraper_dir, scraper))
+            for scraper in os.listdir(options.scraper_dir)
+            if os.path.isfile(os.path.join(options.scraper_dir, scraper))
             and scraper.endswith(".py")
             and scraper != "__init__.py"]
 
