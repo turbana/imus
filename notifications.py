@@ -19,7 +19,9 @@ def notify(msg):
         )
         return
     send_email(msg)
-    touch(os.path.join(options.cache_dir, get_hash(msg)))
+    filename = os.path.join(options.cache_dir, get_hash(msg))
+    logging.debug("saving notification at %s" % filename)
+    touch(filename)
 
 
 def should_notify(msg):
