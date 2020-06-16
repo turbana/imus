@@ -18,13 +18,13 @@ def notify(msg):
                 msg["options"]["suppress_time"])
         )
         return
-    if options.dry_run:
-        logging.info("aborting notification: --dry-run is set")
-        return
     send_email(msg)
     filename = os.path.join(options.cache_dir, get_hash(msg))
-    logging.debug("saving notification at %s" % filename)
-    touch(filename)
+    if options.dry_run:
+        logging.debug("would have saved notification at %s" % filename)
+    else:
+        logging.debug("saving notification at %s" % filename)
+        touch(filename)
 
 
 def should_notify(msg):
@@ -60,8 +60,12 @@ def touch(fname, mode=0o666, dir_fd=None, **kwargs):
 
 
 def send_email(msg):
-    logging.info("sending email to %s: %s" % (options.email_address,
-                                              msg["title"]))
+    if options.dry_run:
+        logging.info("would have sent email to %s: %s" % (
+            options.email_address, msg["title"]))
+        return
+    logging.info("sending email to %s: %s" % (
+        options.email_address, msg["title"]))
     ssl_context = ssl.create_default_context()
     with smtplib.SMTP_SSL(options.smtp_hostname, options.smtp_port,
                           context=ssl_context) as smtp:
