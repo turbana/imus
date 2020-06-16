@@ -6,6 +6,8 @@ import scraper
 
 URL = "https://www.reddit.com/r/GameDeals/new/.json"
 REGEX = re.compile(r'\bFree[/: ]*(?!gift for reddit(?:[eo]rs)?)(?!weekend|week)\b', flags=re.IGNORECASE)
+COMMENT_RATE = 1.0
+MIN_AGE = 30 * 60
 NOTIFY_TIME = "1w"
 
 
@@ -14,12 +16,13 @@ class Scraper(scraper.AbstractScraper):
         super().__init__(URL, parser=reddit_subreddit_json)
 
     def match(self, data):
-        return REGEX.search(data["title"])
+        free = REGEX.search(data.title)
+        popular = data.comments_rate >= COMMENT_RATE and data.age >= MIN_AGE
+        return free or popular
 
     def action(self, data):
-        body = "reddit comments - %s" % data["comments"]
-        if data["comments"] != data["url"]:
-            body += "\nstore page - %s" % data["url"]
-        self.notify(data["title"],
-                    body=body,
-                    suppress_time=NOTIFY_TIME)
+        body = "%d reddit comments [%1.02fcpm] - %s" % (
+            data.comments, data.comments_rate, data.comments_url)
+        if data.url != data.comments_url:
+            body += "\nstore page - %s" % data.url
+        self.notify(data.title, body=body, suppress_time=NOTIFY_TIME)
