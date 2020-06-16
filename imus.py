@@ -67,13 +67,11 @@ def load_options(args):
 
 
 def configure_logging():
-    with open("logging.yaml") as f:
-        config = yaml.load(f, Loader=yaml.FullLoader)
     if options.verbosity == 1:
-        config["handlers"]["console"]["level"] = "INFO"
+        options.logging.handlers.console.level = "INFO"
     elif options.verbosity >= 2:
-        config["handlers"]["console"]["level"] = "DEBUG"
-    logging.config.dictConfig(config)
+        options.logging.handlers.console.level = "DEBUG"
+    logging.config.dictConfig(options.logging)
 
 
 def arguments():
