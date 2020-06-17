@@ -4,7 +4,9 @@ import logging
 import logging.config
 import os
 import os.path
+import random
 import sys
+import time
 import yaml
 
 from options import options
@@ -38,6 +40,10 @@ def main():
         logging.error("scraper %s not found" % scraper)
         return 1
 
+    if options.random_wait:
+        wait = random.randint(1, options.random_wait)
+        logging.debug("waiting for %d seconds" % wait)
+        time.sleep(wait)
     logging.info("starting run of %s" % scraper)
     module = importlib.import_module(scraper)
     obj = module.Scraper()
@@ -92,6 +98,8 @@ def arguments():
                         action="store_true")
     parser.add_argument("--cache", help="use HTTP cache if available",
                         action="store_true")
+    parser.add_argument("--random-wait", help="wait between 1 and RANDOM seconds",
+                        type=int, metavar="RANDOM")
     return parser.parse_args()
 
 
