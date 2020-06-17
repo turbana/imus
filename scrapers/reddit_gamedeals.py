@@ -5,7 +5,7 @@ import scraper
 
 
 URL = "https://www.reddit.com/r/GameDeals/new/.json"
-REGEX = re.compile(r'\bFree[/: ]*(?!gift for reddit(?:[eo]rs)?)(?!weekend|week)\b', flags=re.IGNORECASE)
+REGEX = re.compile(r'\b(?:Free|100%)[/: ]*(?!gift for reddit(?:[eo]rs)?)(?!weekend|week)\b', flags=re.IGNORECASE)
 COMMENT_RATE = 1.0
 MIN_AGE = 30 * 60
 NOTIFY_TIME = "1w"
