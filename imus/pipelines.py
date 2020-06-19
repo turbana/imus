@@ -5,40 +5,17 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 import hashlib
-import logging
 import os.path
 
 from scrapy.exceptions import DropItem
-from scrapy.exporters import BaseItemExporter
 from scrapy.mail import MailSender
-from scrapy.utils.project import data_path, get_project_settings
+from scrapy.utils.project import data_path
 
 from imus.items import Emailable
 
 
-class DroppedItemsLoggingFilter(logging.Filter):
-    """ By default Items dropped with a DropItem exception are logged as
-    WARNINGs. This changes them into DEBUGs. """
-
-    prefixes = (
-        "Dropped: Item did not match",
-        "Dropped: Already sent notification",
-    )
-
-    def filter(self, record):
-        f = record.getMessage().startswith
-        if any(map(f, self.prefixes)):
-            record.levelname = "DEBUG"
-            record.levelno = logging.DEBUG
-        return True
-
-
 class VerifyMatchPipeline(object):
     """Ensure each Item match's the crawler's .match() function"""
-
-    def __init__(self):
-        logger = logging.getLogger("scrapy.core.scraper")
-        logger.addFilter(DroppedItemsLoggingFilter())
 
     def process_item(self, item, spider):
         if spider.item_match(item):
@@ -61,16 +38,19 @@ class SendEmailPipeline(object):
         if not isinstance(item, Emailable):
             raise DropItem("%s received non-Emailable item" % (
                 self.__class__.__name__))
-        if self.is_in_cache(item):
+        elif self.is_in_cache(item):
             raise DropItem("Already sent notification for item, ignoring")
+
         d = self.mailer.send(to=spider.settings.get("MAIL_TO"),
                              subject=item.email_subject,
                              body=item.email_body)
+
         # add item to notification cache after a successful email
         def put_in_cache_impl(result, item):
             self.put_in_cache(item)
             return result
         d.addCallback(put_in_cache_impl, item)
+
         return item
 
     def is_in_cache(self, item):
