@@ -48,7 +48,7 @@ class GenericProduct(Emailable, Item):
     store = Field()
     name = Field()
     price = Field()
-    stock = Field()
+    in_stock = Field()
     condition = Field()
     listing = Field()
 

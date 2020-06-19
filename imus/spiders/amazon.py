@@ -21,15 +21,17 @@ class AmazonListingSpider(AmazonSpider):
 
         if sell_new:
             item["condition"] = "new"
+            item["in_stock"] = True
             price = sell_new.find("span", id="newBuyBoxPrice").text
             item["price"] = self.parse_price(price)
         elif sell_used:
             item["condition"] = "used"
+            item["in_stock"] = True
             price = sell_used.find("span").text
             item["price"] = self.parse_price(price)
         else:
             item["condition"] = None
-            item["stock"] = 0
+            item["in_stock"] = False
             item["price"] = None
 
         product_name = html.find("span", id="productTitle")
@@ -51,4 +53,4 @@ class AmazonC920SSpider(AmazonListingSpider):
     ]
 
     def item_match(self, item):
-        return item["condition"] == "new" and item["price"] < 80.00
+        return item["in_stock"] and item["condition"] == "new" and item["price"] < 80.00
