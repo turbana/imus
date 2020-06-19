@@ -9,8 +9,8 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
-import yaml
 import os.path
+import yaml
 
 
 BOT_NAME = 'imus'
@@ -111,16 +111,6 @@ MAIL_SSL = True
 MAIL_DEFAULT_TO = []
 
 
-SECRETS_FILENAME = "imus/secrets.yaml"
-LOGGING_CONFIG = "imus/logging.yaml"
-
-
-def _load_yaml(filename):
-    if os.path.exists(filename):
-        with open(filename) as f:
-            return yaml.safe_load(f)
-    return {}
-
-
-# load settings from secrets file
-globals().update(_load_yaml(SECRETS_FILENAME))
+if os.path.exists("imus/secrets.yaml"):
+    with open("imus/secrets.yaml") as f:
+        globals().update(yaml.safe_load(f))
