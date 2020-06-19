@@ -51,7 +51,7 @@ class SendEmailPipeline(object):
     def __init__(self, settings):
         self.cache_dir = data_path(settings.get("DUPLICATECACHE_DIR"),
                                    createdir=True)
-        self.mailer = MailSender.from_settings(get_project_settings())
+        self.mailer = MailSender.from_settings(settings)
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -61,22 +61,16 @@ class SendEmailPipeline(object):
         if not isinstance(item, Emailable):
             raise DropItem("%s received non-Emailable item" % (
                 self.__class__.__name__))
-            # return
         if self.is_in_cache(item):
             raise DropItem("Already sent notification for item, ignoring")
-        print("-"*80)
-        print(item)
-        print(item.email_subject)
-        print(item.email_body)
-        defer = self.mailer.send(
-            to=["turbana@gmail.com"],
-            subject=item.email_subject,
-            body=item.email_body)
-        def impl(result, item):
+        d = self.mailer.send(to=spider.settings.get("MAIL_TO"),
+                             subject=item.email_subject,
+                             body=item.email_body)
+        # add item to notification cache after a successful email
+        def put_in_cache_impl(result, item):
             self.put_in_cache(item)
             return result
-        defer.addCallback(impl, item)
-        # defer.addCallback(lambda _, item: self.put_in_cache(item), item)
+        d.addCallback(put_in_cache_impl, item)
         return item
 
     def is_in_cache(self, item):
