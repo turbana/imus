@@ -5,6 +5,7 @@
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/items.html
 from abc import ABC, abstractmethod
+import textwrap
 
 from scrapy import Item, Field
 
@@ -41,3 +42,26 @@ class RedditLink(Emailable, Item):
         if self["url"] != self["comments_url"]:
             body += "\nstore page - %s" % self["url"]
         return body
+
+
+class GenericProduct(Emailable, Item):
+    store = Field()
+    name = Field()
+    price = Field()
+    stock = Field()
+    condition = Field()
+    listing = Field()
+
+    @property
+    def email_subject(self):
+        return "[{store}] ${price} - {name}".format(**self)
+
+    @property
+    def email_body(self):
+        return textwrap.dedent(
+            """
+            {store} is selling "{name}" {condition} for ${price}
+
+            {listing}
+            """
+        ).format(**self)
