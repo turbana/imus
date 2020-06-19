@@ -59,6 +59,14 @@ ROBOTSTXT_OBEY = False
 #DOWNLOADER_MIDDLEWARES = {
 #    'imus.middlewares.ImusDownloaderMiddleware': 543,
 #}
+DOWNLOADER_MIDDLEWARES = {
+    'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
+    'scrapy.downloadermiddlewares.retry.RetryMiddleware': None,
+    'scrapy_fake_useragent.middleware.RandomUserAgentMiddleware': 400,
+    'scrapy_fake_useragent.middleware.RetryUserAgentMiddleware': 401,
+}
+
+# RANDOM_UA_TYPE = "random"
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
