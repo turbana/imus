@@ -1,16 +1,22 @@
 # -*- coding: utf-8 -*-
 import re
 
+from scrapy import Request
+
 from imus.spiders.basespider import ImusBaseSpider
-from imus.items import ForumThread
+from imus.items import ForumThread, ForumPost
 
 
 class MatrixGamesSpider(ImusBaseSpider):
     allowed_domains = ["matrixgames.com"]
 
+    def parse(self, response, *args, **kwargs):
+        if "forums/tt.asp" in response.url:
+            yield from self.parse_forum_listing(response, *args, **kwargs)
+        elif "forums/tm.asp" in response.url:
+            yield from self.parse_forum_post(response, *args, **kwargs)
 
-class MatrixGamesForumSpider(MatrixGamesSpider):
-    def parse(self, response):
+    def parse_forum_listing(self, response):
         # NOTE: Matrix's forums suck. They don't contain any identifying
         # classes or IDs. So we search for <a> tags pointing to a forum thread
         # (tm.asp), that are not pointing to paged thread ('mpage=?'). Then
@@ -31,6 +37,23 @@ class MatrixGamesForumSpider(MatrixGamesSpider):
 
             yield from self.matches(item)
 
+    def parse_forum_post(self, response, thread=None):
+        # NOTE: Same deal as parse_forum_listing(): we find <td> with class of
+        # "msg", then work back up to the containing parent element. Then back
+        # down for each relevant part
+        post_number = 0
+        rows = response.xpath("//td[@class='msg']/../../../../..")
+        for elem in rows:
+            post_number += 1
+            post = ForumPost()
+            post["thread"] = thread
+            post["text"] = "\n".join(elem.xpath(".//td[@class='msg']//text()").getall()).strip()
+            post["author"] = elem.xpath(".//a[@class='subhead']/text()").get()
+            post["post_number"] = post_number
+            post["posted_timestamp"] = elem.xpath(".//td[@class='cat']/table/tr/td/span/text()").get()
+
+            yield from self.matches(post)
+
     def build_url(self, full_url, relative_url):
         base_url = self.relative_url(full_url)
         if not base_url.endswith("/"):
@@ -38,7 +61,7 @@ class MatrixGamesForumSpider(MatrixGamesSpider):
         return base_url + relative_url
 
 
-class MatrixGamesShadowEmpireRelease(MatrixGamesForumSpider):
+class MatrixGamesShadowEmpireRelease(MatrixGamesSpider):
     name = "shadow_empire_release"
     start_urls = [
         "https://www.matrixgames.com/forums/tt.asp?forumid=1753",
@@ -46,10 +69,14 @@ class MatrixGamesShadowEmpireRelease(MatrixGamesForumSpider):
     version_regex = re.compile('\\bv?([0-9.]+)\\b', flags=re.IGNORECASE)
 
     def matches(self, item):
-        title = item["title"].lower()
-        version = self.version_regex.search(title)
-        version = version and version.group(1)
-        name = "shadow empire" in title
-        release = "release" in title or "available" in title
-        if item["pinned"] and name and release and version:
-            yield item
+        if isinstance(item, ForumThread):
+            title = item["title"].lower()
+            version = self.version_regex.search(title)
+            version = version and version.group(1)
+            name = "shadow empire" in title
+            release = "release" in title or "available" in title
+            if item["pinned"] and name and release and version:
+                yield Request(item["url"], cb_kwargs=dict(thread=item))
+        elif isinstance(item, ForumPost):
+            if item["post_number"] == 1:
+                yield item

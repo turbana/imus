@@ -91,3 +91,27 @@ class ForumThread(Emailable, Item):
             {url}
             """
         ).format(**self)
+
+
+class ForumPost(Emailable, Item):
+    thread = Field()
+    author = Field()
+    posted_timestamp = Field()
+    post_number = Field()
+    text = Field()
+
+    @property
+    def email_subject(self):
+        return "{thread[title]}".format(**self)
+
+    @property
+    def email_body(self):
+        return textwrap.dedent(
+            """
+            {thread[title]}
+            by {author} at {posted_timestamp}
+            {thread[url]}
+
+            {text}
+            """
+        ).format(**self)
