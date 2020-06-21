@@ -14,16 +14,6 @@ from scrapy.utils.project import data_path
 from imus.items import Emailable
 
 
-class VerifyMatchPipeline(object):
-    """Ensure each Item match's the crawler's .match() function"""
-
-    def process_item(self, item, spider):
-        if spider.item_match(item):
-            return item
-        raise DropItem("Item did not match %s.item_match()" % (
-            spider.__class__.__name__))
-
-
 class SendEmailPipeline(object):
     def __init__(self, settings):
         self.cache_dir = data_path(settings.get("DUPLICATECACHE_DIR"),

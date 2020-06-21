@@ -77,7 +77,6 @@ DOWNLOADER_MIDDLEWARES = {
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    'imus.pipelines.VerifyMatchPipeline': 300,
     'imus.pipelines.SendEmailPipeline': 1000,
 }
 

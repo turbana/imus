@@ -28,7 +28,8 @@ class RedditSubredditJsonSpider(RedditSpider):
             item["comments_rate"] = item["comments"] / ((now - item["posted"]) / 60)
             item["comments_url"] = REDDIT_URL + link["permalink"]
             item["flair"] = link["link_flair_text"] or ""
-            yield item
+
+            yield from self.matches(item)
 
 
 class RedditGameDeals(RedditSubredditJsonSpider):
@@ -38,10 +39,11 @@ class RedditGameDeals(RedditSubredditJsonSpider):
     notify_comment_rate = 1.0
     notify_min_age = 30 * 60
 
-    def item_match(self, item):
+    def matches(self, item):
         age = datetime.datetime.now().timestamp() - item["posted"]
         expired = "expired" in item["flair"].lower()
         free = self.free_game_regex.search(item["title"])
         popular = item["comments_rate"] >= self.notify_comment_rate and \
             age >= self.notify_min_age
-        return not expired and (free or popular)
+        if not expired and (free or popular):
+            yield item

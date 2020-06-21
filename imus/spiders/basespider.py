@@ -8,7 +8,7 @@ import scrapy
 
 class ImusBaseSpider(scrapy.Spider, ABC):
     @abstractmethod
-    def item_match(self, item):
+    def matches(self, item):
         pass
 
     @staticmethod

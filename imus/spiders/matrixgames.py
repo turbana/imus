@@ -29,7 +29,7 @@ class MatrixGamesForumSpider(MatrixGamesSpider):
             item["author"] = elem.xpath("./td[5]/a/text()").get().strip()
             item["views"] = int(elem.xpath("./td[6]/text()").get())
 
-            yield item
+            yield from self.matches(item)
 
     def build_url(self, full_url, relative_url):
         base_url = self.relative_url(full_url)
@@ -45,10 +45,11 @@ class MatrixGamesShadowEmpireRelease(MatrixGamesForumSpider):
     ]
     version_regex = re.compile('\\bv?([0-9.]+)\\b', flags=re.IGNORECASE)
 
-    def item_match(self, item):
+    def matches(self, item):
         title = item["title"].lower()
         version = self.version_regex.search(title)
         version = version and version.group(1)
         name = "shadow empire" in title
         release = "release" in title or "available" in title
-        return item["pinned"] and name and release and version
+        if item["pinned"] and name and release and version:
+            yield item

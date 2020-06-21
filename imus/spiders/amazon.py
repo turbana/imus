@@ -34,7 +34,7 @@ class AmazonListingSpider(AmazonSpider):
         product_name = response.css("span#productTitle::text").get()
         item["name"] = product_name.strip()
 
-        return item
+        yield from self.matches(item)
 
     @staticmethod
     def parse_price(price):
@@ -49,5 +49,6 @@ class AmazonC920SSpider(AmazonListingSpider):
         "https://www.amazon.com/Logitech-C920S-Webcam-Privacy-Shutter/dp/B085TFF7M1",
     ]
 
-    def item_match(self, item):
-        return item["in_stock"] and item["condition"] == "new" and item["price"] < 80.00
+    def matches(self, item):
+        if item["in_stock"] and item["condition"] == "new" and item["price"] < 80.00:
+            yield item

@@ -26,7 +26,7 @@ class OfficeDepotListingSpider(OfficeDepotSpider):
         heading = response.css("div#skuHeading > h1::text").get()
         item["name"] = heading.strip()
 
-        return item
+        yield from self.matches(item)
 
     @staticmethod
     def parse_price(price):
@@ -40,5 +40,6 @@ class OfficeDepotC920SSpider(OfficeDepotListingSpider):
         "https://www.officedepot.com/a/products/4904248/Logitech-C920S-Pro-HD-150-Megapixel/",
     ]
 
-    def item_match(self, item):
-        return item["in_stock"] and item["condition"] == "new" and item["price"] < 80.00
+    def matches(self, item):
+        if item["in_stock"] and item["condition"] == "new" and item["price"] < 80.00:
+            yield item
