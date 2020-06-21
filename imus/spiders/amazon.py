@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import bs4
-
 from imus.spiders.basespider import ImusBaseSpider
 from imus.items import GenericProduct
 
@@ -11,31 +9,30 @@ class AmazonSpider(ImusBaseSpider):
 
 class AmazonListingSpider(AmazonSpider):
     def parse(self, response):
-        html = bs4.BeautifulSoup(response.text, "lxml")
         item = GenericProduct()
         item["store"] = "Amazon"
         item["listing"] = response.url
 
-        sell_new = html.find("div", id="buyNew_cbb")
-        sell_used = html.find("div", id="buyNew_noncbb")
+        sell_new = response.css("div#buyNew_cbb")
+        sell_used = response.css("div#buyNew_noncbb")
 
         if sell_new:
             item["condition"] = "new"
             item["in_stock"] = True
-            price = sell_new.find("span", id="newBuyBoxPrice").text
+            price = sell_new.css("span#newBuyBoxPrice::text").get()
             item["price"] = self.parse_price(price)
         elif sell_used:
             item["condition"] = "used"
             item["in_stock"] = True
-            price = sell_used.find("span").text
+            price = sell_used.css("span::text").get()
             item["price"] = self.parse_price(price)
         else:
             item["condition"] = None
             item["in_stock"] = False
             item["price"] = None
 
-        product_name = html.find("span", id="productTitle")
-        item["name"] = product_name.text.strip()
+        product_name = response.css("span#productTitle::text").get()
+        item["name"] = product_name.strip()
 
         return item
 

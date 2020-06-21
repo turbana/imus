@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import bs4
-
 from imus.spiders.basespider import ImusBaseSpider
 from imus.items import GenericProduct
 
@@ -11,22 +9,22 @@ class OfficeDepotSpider(ImusBaseSpider):
 
 class OfficeDepotListingSpider(OfficeDepotSpider):
     def parse(self, response):
-        html = bs4.BeautifulSoup(response.text, "lxml")
         item = GenericProduct()
         item["store"] = "OfficeDepot"
         item["listing"] = response.url
+        item["condition"] = "new"
 
         # find price
-        elem = html.select("div.unified_price_row.red_price > span.price_column.right")[0]
-        item["price"] = self.parse_price(elem.text)
+        price = response.css("div.unified_price_row.red_price > span.price_column.right::text").get()
+        item["price"] = self.parse_price(price)
 
         # find in stock
-        elem = html.select("div.deliveryMessage")[0]
-        item["in_stock"] = "out of stock" not in elem.text.lower()
+        delivery = response.css("div.deliveryMessage > span::text").get()
+        item["in_stock"] = "out of stock" not in delivery.lower()
 
         # find product name
-        elem = html.select("div#skuHeading > h1")[0]
-        item["name"] = elem.contents[0].strip()
+        heading = response.css("div#skuHeading > h1::text").get()
+        item["name"] = heading.strip()
 
         return item
 
