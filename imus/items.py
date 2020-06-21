@@ -65,3 +65,29 @@ class GenericProduct(Emailable, Item):
             {listing}
             """
         ).format(**self)
+
+
+class ForumThread(Emailable, Item):
+    title = Field()
+    author = Field()
+    url = Field()
+    posted = Field()
+    pinned = Field()
+    replies = Field()
+    views = Field()
+    description = Field()
+
+    @property
+    def email_subject(self):
+        return "{title}".format(**self)
+
+    @property
+    def email_body(self):
+        return textwrap.dedent(
+            """
+            {title}
+            by {author}
+
+            {url}
+            """
+        ).format(**self)
