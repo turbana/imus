@@ -29,7 +29,9 @@ class SendEmailPipeline(object):
             raise DropItem("%s received non-Emailable item" % (
                 self.__class__.__name__))
         elif self.is_in_cache(item):
-            raise DropItem("Already sent notification for item, ignoring")
+            filename = os.path.basename(self.cache_filename(item))
+            raise DropItem("Already sent notification for item (%s), ignoring" % (
+                filename))
 
         d = self.mailer.send(to=spider.settings.get("MAIL_TO"),
                              subject=item.email_subject,
