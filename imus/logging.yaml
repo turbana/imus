@@ -1,0 +1,65 @@
+version: 1
+disable_existing_loggers: False
+
+
+formatters:
+  simple:
+    format: "%(levelname)s: %(message)s"
+  detailed:
+    format: "%(asctime)s %(process)d [%(name)s] %(levelname)s: %(message)s"
+    datefmt: "%Y-%m-%d %H:%M:%S"
+
+
+filters:
+  ignore_dropped_items:
+    (): imus.customlogging.DroppedItemsLoggingFilter
+
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: WARNING
+    formatter: simple
+    stream: ext://sys.stdout
+
+  debug_file:
+    class: logging.handlers.TimedRotatingFileHandler
+    level: DEBUG
+    formatter: detailed
+    filename: .scrapy/log/imus-debug.log
+    interval: 1
+    when: d
+    backupCount: 7
+
+  info_file:
+    class: logging.handlers.TimedRotatingFileHandler
+    level: INFO
+    formatter: detailed
+    filename: .scrapy/log/imus-info.log
+    interval: 1
+    when: d
+    backupCount: 7
+
+  error_file:
+    class: logging.handlers.TimedRotatingFileHandler
+    level: WARNING
+    formatter: detailed
+    filename: .scrapy/log/imus-error.log
+    interval: 1
+    when: d
+    backupCount: 7
+
+  # email_errors:
+  #   class: imus.customlogging.BufferingEmailHandler
+  #   level: DEBUG
+  #   flushLevel: ERROR
+  #   formatter: detailed
+  #   subject: "Error(s) in IMUS"
+
+
+root:
+  handlers: [console, debug_file, info_file, error_file]
+
+loggers:
+  scrapy.core.scraper:
+    filters: [ignore_dropped_items]

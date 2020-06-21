@@ -9,6 +9,7 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
+import logging
 import os.path
 import yaml
 
@@ -118,6 +119,18 @@ MAIL_SSL = True
 MAIL_DEFAULT_TO = []
 
 
+# load our secrets file
 if os.path.exists("imus/secrets.yaml"):
     with open("imus/secrets.yaml") as f:
         globals().update(yaml.safe_load(f))
+
+
+# setup our custom logging configuration
+if os.path.exists("imus/logging.yaml"):
+    with open("imus/logging.yaml") as f:
+        config = yaml.safe_load(f)
+        logging.config.dictConfig(config)
+
+
+# don't use the default scrapy log handler
+LOG_ENABLED = False

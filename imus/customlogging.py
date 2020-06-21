@@ -7,8 +7,6 @@ class DroppedItemsLoggingFilter(logging.Filter):
     changes them into DEBUG. """
 
     prefixes = (
-        # found an Item we're not interested in
-        "Dropped: Item did not match",
         # tried to email a duplicate Item
         "Dropped: Already sent notification",
     )
@@ -19,7 +17,3 @@ class DroppedItemsLoggingFilter(logging.Filter):
             record.levelname = "DEBUG"
             record.levelno = logging.DEBUG
         return True
-
-
-def setup():
-    logging.getLogger("scrapy.core.scraper").addFilter(DroppedItemsLoggingFilter())
