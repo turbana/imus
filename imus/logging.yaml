@@ -49,16 +49,16 @@ handlers:
     when: d
     backupCount: 7
 
-  # email_errors:
-  #   class: imus.customlogging.BufferingEmailHandler
-  #   level: DEBUG
-  #   flushLevel: ERROR
-  #   formatter: detailed
-  #   subject: "Error(s) in IMUS"
+  email_errors:
+    class: imus.customlogging.BufferingEmailHandler
+    level: DEBUG
+    flushLevel: ERROR
+    formatter: detailed
+    subject: "Error in IMUS"
 
 
 root:
-  handlers: [console, debug_file, info_file, error_file]
+  handlers: [console, debug_file, info_file, error_file, email_errors]
 
 loggers:
   scrapy.core.scraper:

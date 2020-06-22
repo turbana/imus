@@ -116,7 +116,7 @@ MAIL_PORT = 465
 MAIL_USER = ""
 MAIL_PASS = ""
 MAIL_SSL = True
-MAIL_DEFAULT_TO = []
+MAIL_TO = []
 
 
 # load our secrets file
