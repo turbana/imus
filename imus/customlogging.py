@@ -23,6 +23,30 @@ class DroppedItemsLoggingFilter(logging.Filter):
         return True
 
 
+class FilterSensitiveInformationFilter(logging.Filter):
+    """ Scrapy logs most (all?) custom settings including usernames and
+    passwords. This filters out certain sensitive information. """
+
+    filters = (
+        re.compile(r'\'MAIL_(?:PASS|FROM|TO|HOST|PORT|USER)\': (.*),$', re.M),
+        re.compile(r'Telnet Password: (.*)$'),
+        re.compile(r'Telnet console listening on (.*)$'),
+    )
+
+    def filter(self, record):
+        message = record.getMessage()
+        scope = [message]
+        def replace(match):
+            scope[0] = scope[0].replace(match.groups(1)[0], "'****'")
+        for filter_regex in self.filters:
+            filter_regex.sub(replace, message)
+        if scope[0] != message:
+            record.msg = scope[0]
+            record.message = scope[0]
+            record.args = []
+        return True
+
+
 class BufferingEmailHandler(logging.handlers.BufferingHandler):
     """ Buffer all received log records. When an item of ``flushLevel`` or
     higher is encountered: send an email with all buffered records. """

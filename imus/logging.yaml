@@ -14,6 +14,9 @@ filters:
   ignore_dropped_items:
     (): imus.customlogging.DroppedItemsLoggingFilter
 
+  filter_sensitive:
+    (): imus.customlogging.FilterSensitiveInformationFilter
+
 
 handlers:
   console:
@@ -53,6 +56,7 @@ handlers:
     class: imus.customlogging.BufferingEmailHandler
     level: DEBUG
     flushLevel: ERROR
+    filters: [filter_sensitive]
     formatter: detailed
     subject: "Error in IMUS"
 
