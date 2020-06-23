@@ -7,6 +7,8 @@ import scrapy
 
 
 class ImusBaseSpider(scrapy.Spider, ABC):
+    notification_expires = "1d"
+
     @abstractmethod
     def matches(self, item):
         pass

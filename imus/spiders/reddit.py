@@ -35,6 +35,7 @@ class RedditSubredditJsonSpider(RedditSpider):
 class RedditGameDeals(RedditSubredditJsonSpider):
     name = "reddit_gamedeals"
     start_urls = ["https://www.reddit.com/r/GameDeals/new/.json"]
+    notification_expires = "1w"
     free_game_regex = re.compile(r'\b(?:Free|100%)[/: ]*(?!gift for reddit(?:[eo]rs)?)(?!weekend|week)\b', flags=re.IGNORECASE)
     notify_comment_rate = 1.0
     notify_min_age = 30 * 60

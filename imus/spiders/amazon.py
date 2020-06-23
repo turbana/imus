@@ -48,6 +48,7 @@ class AmazonC920SSpider(AmazonListingSpider):
         "https://www.amazon.com/Logitech-C920S-Webcam-Privacy-Shutter/dp/B07K95WFWM",
         "https://www.amazon.com/Logitech-C920S-Webcam-Privacy-Shutter/dp/B085TFF7M1",
     ]
+    notification_expires = "1d"
 
     def matches(self, item):
         if item["in_stock"] and item["condition"] == "new" and item["price"] < 80.00:

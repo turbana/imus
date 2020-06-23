@@ -39,6 +39,7 @@ class OfficeDepotC920SSpider(OfficeDepotListingSpider):
     start_urls = [
         "https://www.officedepot.com/a/products/4904248/Logitech-C920S-Pro-HD-150-Megapixel/",
     ]
+    notification_expires = "1d"
 
     def matches(self, item):
         if item["in_stock"] and item["condition"] == "new" and item["price"] < 80.00:

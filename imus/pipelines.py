@@ -6,6 +6,7 @@
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 import hashlib
 import os.path
+import time
 
 from scrapy.exceptions import DropItem
 from scrapy.mail import MailSender
@@ -29,7 +30,7 @@ class SendEmailPipeline(object):
         if not isinstance(item, Emailable):
             raise DropItem("%s received non-Emailable item" % (
                 self.__class__.__name__))
-        elif self.is_in_cache(item):
+        elif self.is_in_cache(item) and not self.is_expired(item, spider.notification_expires):
             filename = os.path.basename(self.cache_filename(item))
             raise DropItem("Already sent notification for item (%s), ignoring" % (
                 filename))
@@ -45,6 +46,23 @@ class SendEmailPipeline(object):
             d.addCallback(put_in_cache_impl, item)
 
         return item
+
+    def is_expired(self, item, expires):
+        if not expires:
+            return False
+        seconds = {
+            "s": 1,
+            "m": 60,
+            "h": 60*60,
+            "d": 60*60*24,
+            "w": 60*60*24*7,
+            "y": 60*60*24*365.25,
+        }
+        value, unit = int(expires[:-1]), expires[-1]
+        expires_age = value * seconds[unit]
+        filename = self.cache_filename(item)
+        age = time.time() - os.stat(filename).st_mtime
+        return expires_age < age
 
     def is_in_cache(self, item):
         if not isinstance(item, Emailable):

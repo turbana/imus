@@ -66,6 +66,7 @@ class MatrixGamesShadowEmpireRelease(MatrixGamesSpider):
     start_urls = [
         "https://www.matrixgames.com/forums/tt.asp?forumid=1753",
     ]
+    notification_expires = None
     version_regex = re.compile('\\bv?([0-9.]+)\\b', flags=re.IGNORECASE)
 
     def matches(self, item):
