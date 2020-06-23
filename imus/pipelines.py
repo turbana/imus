@@ -18,6 +18,7 @@ class SendEmailPipeline(object):
     def __init__(self, settings):
         self.cache_dir = data_path(settings.get("DUPLICATECACHE_DIR"),
                                    createdir=True)
+        self.send_email = settings.get("SEND_NOTIFICATIONS", False)
         self.mailer = MailSender.from_settings(settings)
 
     @classmethod
@@ -33,15 +34,15 @@ class SendEmailPipeline(object):
             raise DropItem("Already sent notification for item (%s), ignoring" % (
                 filename))
 
-        d = self.mailer.send(to=spider.settings.get("MAIL_TO"),
-                             subject=item.email_subject,
-                             body=item.email_body)
-
-        # add item to notification cache after a successful email
-        def put_in_cache_impl(result, item):
-            self.put_in_cache(item)
-            return result
-        d.addCallback(put_in_cache_impl, item)
+        if self.send_email:
+            d = self.mailer.send(to=spider.settings.get("MAIL_TO"),
+                                 subject=item.email_subject,
+                                 body=item.email_body)
+            # add item to notification cache after a successful email
+            def put_in_cache_impl(result, item):
+                self.put_in_cache(item)
+                return result
+            d.addCallback(put_in_cache_impl, item)
 
         return item
 

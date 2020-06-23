@@ -134,3 +134,6 @@ if os.path.exists("imus/logging.yaml"):
 
 # don't use the default scrapy log handler
 LOG_ENABLED = False
+
+# don't sent emails from development
+SEND_NOTIFICATIONS = False
