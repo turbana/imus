@@ -36,14 +36,19 @@ class RedditGameDeals(RedditSubredditJsonSpider):
     name = "reddit_gamedeals"
     start_urls = ["https://www.reddit.com/r/GameDeals/new/.json"]
     notification_expires = "1w"
-    free_game_regex = re.compile(r'\b(?:Free|100%)[/: ]*(?!gift for reddit(?:[eo]rs)?)(?!weekend|week)\b', flags=re.IGNORECASE)
+    match_regex = re.compile(r'\b(free|100%)\b', re.I)
+    filter_regex = re.compile(r'(gift for reddit|drm[ -]*free|spend over.*get.*free)', re.I)
+    title_sub_regex = re.compile(r' {2,}')
     notify_comment_rate = 1.0
     notify_min_age = 30 * 60
 
     def matches(self, item):
         age = datetime.datetime.now().timestamp() - item["posted"]
         expired = "expired" in item["flair"].lower()
-        free = self.free_game_regex.search(item["title"])
+        title = self.title_sub_regex.sub(" ", item["title"])
+        good_match = self.match_regex.search(title)
+        bad_match = self.filter_regex.search(title)
+        free = good_match and not bad_match
         popular = item["comments_rate"] >= self.notify_comment_rate and \
             age >= self.notify_min_age
         if not expired and (free or popular):
