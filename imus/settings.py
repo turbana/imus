@@ -63,9 +63,14 @@ ROBOTSTXT_OBEY = False
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
     'scrapy.downloadermiddlewares.retry.RetryMiddleware': None,
+    'imus.middlewares.EnsureVPNActiveMiddleware': 1,
     'scrapy_fake_useragent.middleware.RandomUserAgentMiddleware': 400,
     'scrapy_fake_useragent.middleware.RetryUserAgentMiddleware': 401,
 }
+
+VPN_MIDDLEWARE_ACTIVE = True
+VPN_MIDDLEWARE_ROUTERIP_CMD = "~/.etc/bin/router-ip"
+VPN_MIDDLEWARE_PUBLICIP_CMD = "~/.etc/bin/wan-ip"
 
 # RANDOM_UA_TYPE = "random"
 
