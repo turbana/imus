@@ -33,6 +33,8 @@ class EnsureVPNActiveMiddleware:
             if public_ip == router_ip:
                 spider.logger.error("VPN not active")
                 raise IgnoreRequest("VPN not active")
+            # only check the first request
+            self.is_active = False
 
     def _call(self, cmd):
         status, output = subprocess.getstatusoutput(cmd)
