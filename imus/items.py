@@ -51,6 +51,7 @@ class GenericProduct(Emailable, Item):
     in_stock = Field()
     condition = Field()
     listing = Field()
+    sold_by = Field()
 
     @property
     def email_subject(self):
