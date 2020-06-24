@@ -2,8 +2,8 @@
 
 set -e
 
-cd $(dirname $0)
-git stash save > /dev/null
+cd $(dirname $0)/..
+git stash save --include-untracked > /dev/null
 rsync -azv \
 	--exclude '.git*' \
 	--exclude .scrapy \
@@ -11,5 +11,5 @@ rsync -azv \
 	--exclude imus/settings.py \
 	--exclude imus/logging.yaml \
 	--exclude $0 \
-	rpi:imus
+	. rpi:imus
 git stash pop > /dev/null
