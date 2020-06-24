@@ -34,8 +34,8 @@ class RedditGameDeals(RedditSpider):
     name = "reddit_gamedeals"
     start_urls = ["https://www.reddit.com/r/GameDeals/new/.json"]
     notification_expires = "1w"
-    match_regex = re.compile(r'\b(free|100%)\b', re.I)
-    filter_regex = re.compile(r'(gift for reddit|drm[ -]*free|spend over.*get.*free)', re.I)
+    match_regex = re.compile(r'\b(free\b|100%)', re.I)
+    filter_regex = re.compile(r'(gift for reddit|drm[ -]*free|spend over.*get.*free|buy (two|2)( and)? get)', re.I)
     title_sub_regex = re.compile(r' {2,}')
     popular_comment_rate = 1.0
     popular_min_age = 30 * 60
