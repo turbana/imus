@@ -3,18 +3,16 @@ import datetime
 import json
 import re
 
-from imus.spiders.basespider import ImusBaseSpider
+from imus.spiders import BaseSpider
 from imus.items import RedditLink
 
 
 REDDIT_URL = "https://www.reddit.com"
 
 
-class RedditSpider(ImusBaseSpider):
+class RedditSpider(BaseSpider):
     allowed_domains = ["reddit.com"]
 
-
-class RedditSubredditJsonSpider(RedditSpider):
     def parse(self, response):
         now = datetime.datetime.utcnow().timestamp()
         parsed_data = json.loads(response.text)
@@ -32,7 +30,7 @@ class RedditSubredditJsonSpider(RedditSpider):
             yield from self.matches(item)
 
 
-class RedditGameDeals(RedditSubredditJsonSpider):
+class RedditGameDeals(RedditSpider):
     name = "reddit_gamedeals"
     start_urls = ["https://www.reddit.com/r/GameDeals/new/.json"]
     notification_expires = "1w"

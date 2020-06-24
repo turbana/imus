@@ -3,11 +3,11 @@ import re
 
 from scrapy import Request
 
-from imus.spiders.basespider import ImusBaseSpider
+from imus.spiders import BaseSpider
 from imus.items import ForumThread, ForumPost
 
 
-class MatrixGamesSpider(ImusBaseSpider):
+class MatrixGamesSpider(BaseSpider):
     allowed_domains = ["matrixgames.com"]
 
     def parse(self, response, *args, **kwargs):

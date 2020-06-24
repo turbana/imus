@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
-from imus.spiders.basespider import ImusBaseSpider
+from imus.spiders import BaseSpider
 from imus.items import GenericProduct
 
 
-class AmazonSpider(ImusBaseSpider):
+class AmazonSpider(BaseSpider):
     allowed_domains = ["amazon.com"]
 
-
-class AmazonListingSpider(AmazonSpider):
     def parse(self, response):
         item = GenericProduct()
         item["store"] = "Amazon"
@@ -42,7 +40,7 @@ class AmazonListingSpider(AmazonSpider):
         return float(price)
 
 
-class AmazonC920SSpider(AmazonListingSpider):
+class AmazonC920SSpider(AmazonSpider):
     name = "c920s_amazon"
     start_urls = [
         "https://www.amazon.com/Logitech-C920S-Webcam-Privacy-Shutter/dp/B07K95WFWM",

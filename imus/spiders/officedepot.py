@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
-from imus.spiders.basespider import ImusBaseSpider
+from imus.spiders import BaseSpider
 from imus.items import GenericProduct
 
 
-class OfficeDepotSpider(ImusBaseSpider):
+class OfficeDepotSpider(BaseSpider):
     allowed_domains = ["officedepot.com"]
 
-
-class OfficeDepotListingSpider(OfficeDepotSpider):
     def parse(self, response):
         item = GenericProduct()
         item["store"] = "OfficeDepot"
@@ -34,7 +32,7 @@ class OfficeDepotListingSpider(OfficeDepotSpider):
         return float(price)
 
 
-class OfficeDepotC920SSpider(OfficeDepotListingSpider):
+class OfficeDepotC920SSpider(OfficeDepotSpider):
     name = "c920s_officedepot"
     start_urls = [
         "https://www.officedepot.com/a/products/4904248/Logitech-C920S-Pro-HD-150-Megapixel/",
