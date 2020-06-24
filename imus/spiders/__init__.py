@@ -24,3 +24,9 @@ class BaseSpider(Spider, ABC):
         if parts.path:
             ret += dirname(parts.path)
         return ret
+
+
+class SeleniumSpider(BaseSpider):
+    def start_requests(self):
+        for url in self.start_urls:
+            yield SeleniumRequest(url=url, callback=self.parse)

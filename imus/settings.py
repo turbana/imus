@@ -66,7 +66,12 @@ DOWNLOADER_MIDDLEWARES = {
     'imus.middlewares.EnsureVPNActiveMiddleware': 1,
     'scrapy_fake_useragent.middleware.RandomUserAgentMiddleware': 400,
     'scrapy_fake_useragent.middleware.RetryUserAgentMiddleware': 401,
+    'scrapy_selenium.SeleniumMiddleware': 800,
 }
+
+SELENIUM_DRIVER_NAME = "firefox"
+SELENIUM_DRIVER_EXECUTABLE_PATH = "/home/ian/apps/bin/geckodriver"
+SELENIUM_DRIVER_ARGUMENTS = ["-headless"]
 
 VPN_MIDDLEWARE_ACTIVE = True
 VPN_MIDDLEWARE_ROUTERIP_CMD = "~/.etc/bin/router-ip"
