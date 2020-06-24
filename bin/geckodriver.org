@@ -1,0 +1,12 @@
+* Building for ARM (raspberrypi)
+Mozilla stopped releasing ARM builds in 2018, so we need to checkout the mozilla
+repo and cross-compile to ARM in order to run selenium on a raspberrypi. I
+followed the directions [[https://firefox-source-docs.mozilla.org/testing/geckodriver/ARM.html][here]], with one exception:
+
+In file =testing/geckodriver/Cargo.toml=:
+#+BEGIN
+Change line 24 from:
+    regex = { version="1.0", default-features = false, features = ["perf", "std"] }
+to:
+     regex = "1"
+#+END
