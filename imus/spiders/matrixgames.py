@@ -10,7 +10,7 @@ from imus.items import ForumThread, ForumPost
 class MatrixGamesSpider(BaseSpider):
     allowed_domains = ["matrixgames.com"]
 
-    def parse(self, response, *args, **kwargs):
+    def parse_response(self, response, *args, **kwargs):
         if "forums/tt.asp" in response.url:
             yield from self.parse_forum_listing(response, *args, **kwargs)
         elif "forums/tm.asp" in response.url:
@@ -35,7 +35,7 @@ class MatrixGamesSpider(BaseSpider):
             item["author"] = elem.xpath("./td[5]/a/text()").get().strip()
             item["views"] = int(elem.xpath("./td[6]/text()").get())
 
-            yield from self.matches(item)
+            yield item
 
     def parse_forum_post(self, response, thread=None):
         # NOTE: Same deal as parse_forum_listing(): we find <td> with class of
@@ -52,7 +52,7 @@ class MatrixGamesSpider(BaseSpider):
             post["post_number"] = post_number
             post["posted_timestamp"] = elem.xpath(".//td[@class='cat']/table/tr/td/span/text()").get()
 
-            yield from self.matches(post)
+            yield post
 
     def build_url(self, full_url, relative_url):
         base_url = self.relative_url(full_url)
@@ -77,7 +77,6 @@ class MatrixGamesShadowEmpireRelease(MatrixGamesSpider):
             name = "shadow empire" in title
             release = "release" in title or "available" in title
             if item["pinned"] and name and release and version:
-                yield Request(item["url"], cb_kwargs=dict(thread=item))
+                return Request(item["url"], cb_kwargs=dict(thread=item))
         elif isinstance(item, ForumPost):
-            if item["post_number"] == 1:
-                yield item
+            return item["post_number"] == 1

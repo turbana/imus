@@ -13,7 +13,7 @@ REDDIT_URL = "https://www.reddit.com"
 class RedditSpider(BaseSpider):
     allowed_domains = ["reddit.com"]
 
-    def parse(self, response):
+    def parse_response(self, response):
         now = datetime.datetime.utcnow().timestamp()
         parsed_data = json.loads(response.text)
         for link in parsed_data["data"]["children"]:
@@ -27,7 +27,7 @@ class RedditSpider(BaseSpider):
             item["comments_url"] = REDDIT_URL + link["permalink"]
             item["flair"] = link["link_flair_text"] or ""
 
-            yield from self.matches(item)
+            yield item
 
 
 class RedditGameDeals(RedditSpider):
@@ -49,5 +49,4 @@ class RedditGameDeals(RedditSpider):
         free = good_match and not bad_match
         popular = item["comments_rate"] >= self.popular_comment_rate and \
             age >= self.popular_min_age
-        if not expired and (free or popular):
-            yield item
+        return not expired and (free or popular)

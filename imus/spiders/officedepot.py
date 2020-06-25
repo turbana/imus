@@ -6,7 +6,7 @@ from imus.items import GenericProduct
 class OfficeDepotSpider(BaseSpider):
     allowed_domains = ["officedepot.com"]
 
-    def parse(self, response):
+    def parse_response(self, response):
         item = GenericProduct()
         item["store"] = "OfficeDepot"
         item["listing"] = response.url
@@ -24,7 +24,7 @@ class OfficeDepotSpider(BaseSpider):
         heading = response.css("div#skuHeading > h1::text").get()
         item["name"] = heading.strip()
 
-        yield from self.matches(item)
+        yield item
 
     @staticmethod
     def parse_price(price):
@@ -40,5 +40,5 @@ class OfficeDepotC920SSpider(OfficeDepotSpider):
     notification_expires = "1d"
 
     def matches(self, item):
-        if item["in_stock"] and item["condition"] == "new" and item["price"] < 80.00:
-            yield item
+        return item["in_stock"] and item["condition"] == "new" and \
+            item["price"] < 80.00

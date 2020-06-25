@@ -6,7 +6,7 @@ from imus.items import GenericProduct
 class AmazonSpider(BaseSpider):
     allowed_domains = ["amazon.com"]
 
-    def parse(self, response):
+    def parse_reponse(self, response):
         item = GenericProduct()
         item["store"] = "Amazon"
         item["listing"] = response.url
@@ -32,7 +32,7 @@ class AmazonSpider(BaseSpider):
         product_name = response.css("span#productTitle::text").get()
         item["name"] = product_name.strip()
 
-        yield from self.matches(item)
+        yield item
 
     @staticmethod
     def parse_price(price):
@@ -49,5 +49,5 @@ class AmazonC920SSpider(AmazonSpider):
     notification_expires = "1d"
 
     def matches(self, item):
-        if item["in_stock"] and item["condition"] == "new" and item["price"] < 80.00:
-            yield item
+        return item["in_stock"] and item["condition"] == "new" and \
+            item["price"] < 80.00

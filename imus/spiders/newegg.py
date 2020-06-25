@@ -7,7 +7,7 @@ from imus.items import GenericProduct
 class NeweggSpider(SeleniumSpider):
     allowed_domains = ["newegg.com"]
 
-    def parse(self, response):
+    def parse_response(self, response):
         item = GenericProduct()
         item["store"] = "Newegg"
         item["listing"] = response.url
@@ -27,7 +27,7 @@ class NeweggSpider(SeleniumSpider):
         stock_elem = response.css("span#landingpage-stock").get()
         item["in_stock"] = "in stock" in stock_elem.lower()
 
-        yield from self.matches(item)
+        yield item
 
 
 class NeweggC920SSpider(NeweggSpider):
@@ -39,5 +39,5 @@ class NeweggC920SSpider(NeweggSpider):
     ]
 
     def matches(self, item):
-        if item["in_stock"] and item["price"] < 80.00 and item["sold_by"] == item["store"]:
-            yield item
+        return item["in_stock"] and item["price"] < 80.00 and \
+            item["sold_by"] == item["store"]

@@ -7,7 +7,7 @@ from imus.items import GenericProduct
 class BestbuySpider(SeleniumSpider):
     allowed_domains = ["bestbuy.com"]
 
-    def parse(self, response):
+    def parse_response(self, response):
         if "You don't have permission" in response.text:
             self.logger.error("Bestbuy blocked the request")
             return
@@ -21,7 +21,7 @@ class BestbuySpider(SeleniumSpider):
         add_cart_button = response.css("div.fulfillment-add-to-cart-button button::text").get()
         item["in_stock"] = "add to cart" in add_cart_button.lower()
 
-        yield from self.matches(item)
+        yield item
 
     @staticmethod
     def parse_price(price):
@@ -37,5 +37,4 @@ class BestbuyC920SSpider(BestbuySpider):
     ]
 
     def matches(self, item):
-        if item["in_stock"] and item["price"] < 80.00:
-            yield item
+        return item["in_stock"] and item["price"] < 80.00
