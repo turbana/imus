@@ -5,6 +5,7 @@
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/items.html
 from abc import ABC, abstractmethod
+from hashlib import md5
 import textwrap
 
 from scrapy import Item, Field
@@ -22,7 +23,24 @@ class Emailable(ABC):
         pass
 
 
-class RedditLink(Emailable, Item):
+class Cacheable(ABC):
+    @property
+    @abstractmethod
+    def cache_on(self):
+        pass
+
+    @property
+    def _cache_text(self):
+        inner = "\n  ".join("{0}: {1},".format(attr, repr(self[attr]))
+                            for attr in self.cache_on)
+        return "{\n  " + inner + "\n}"
+
+    def hash(self):
+        return md5(self._cache_text.encode("utf-8")).hexdigest()
+
+
+class RedditLink(Cacheable, Emailable, Item):
+    cache_on = ("title", "url", "posted")
     title = Field()
     url = Field()
     comments = Field()
@@ -44,7 +62,8 @@ class RedditLink(Emailable, Item):
         return body
 
 
-class GenericProduct(Emailable, Item):
+class GenericProduct(Cacheable, Emailable, Item):
+    cache_on = ("store", "name", "price")
     store = Field()
     name = Field()
     price = Field()
@@ -68,7 +87,8 @@ class GenericProduct(Emailable, Item):
         ).format(**self)
 
 
-class ForumThread(Emailable, Item):
+class ForumThread(Cacheable, Emailable, Item):
+    cache_on = ("title", "author")
     title = Field()
     author = Field()
     url = Field()
@@ -94,7 +114,8 @@ class ForumThread(Emailable, Item):
         ).format(**self)
 
 
-class ForumPost(Emailable, Item):
+class ForumPost(Cacheable, Emailable, Item):
+    cache_on = ("author", "posted_timestamp")
     thread = Field()
     author = Field()
     posted_timestamp = Field()

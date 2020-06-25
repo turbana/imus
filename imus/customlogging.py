@@ -13,6 +13,8 @@ class DroppedItemsLoggingFilter(logging.Filter):
     prefixes = (
         # tried to email a duplicate Item
         "Dropped: Already sent notification",
+        # item found in item cache
+        "Dropped: Item found in cache",
     )
 
     def filter(self, record):

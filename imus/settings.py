@@ -88,10 +88,11 @@ VPN_MIDDLEWARE_PUBLICIP_CMD = "~/.etc/bin/wan-ip"
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    'imus.pipelines.SendEmailPipeline': 1000,
+    'imus.pipelines.DuplicateItemCachePipeline': 100,
+    'imus.pipelines.SendEmailPipeline': 800,
 }
 
-DUPLICATECACHE_DIR = 'cache/notifications'
+DUPLICATE_ITEM_CACHE_DIR = 'cache/items'
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html

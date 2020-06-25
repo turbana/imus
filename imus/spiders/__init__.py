@@ -11,6 +11,22 @@ from scrapy_selenium import SeleniumRequest
 class BaseSpider(Spider, ABC):
     notification_expires = "1d"
 
+    @property
+    def _notification_expires(self):
+        expires = self.notification_expires
+        if not expires:
+            return 0
+        seconds = {
+            "s": 1,
+            "m": 60,
+            "h": 60*60,
+            "d": 60*60*24,
+            "w": 60*60*24*7,
+            "y": 60*60*24*365.25,
+        }
+        value, unit = int(expires[:-1]), expires[-1]
+        return value * seconds[unit]
+
     def parse(self, response, *args, **kwargs):
         results = self._gather_responses(response, args, kwargs)
         return self._gather_matches(results)

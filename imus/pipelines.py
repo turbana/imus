@@ -12,13 +12,55 @@ from scrapy.exceptions import DropItem
 from scrapy.mail import MailSender
 from scrapy.utils.project import data_path
 
-from imus.items import Emailable
+from imus.items import Emailable, Cacheable
+
+
+class DuplicateItemCachePipeline(object):
+    def __init__(self, settings):
+        self.cache_dir = data_path(settings.get("DUPLICATE_ITEM_CACHE_DIR"),
+                                   createdir=True)
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(crawler.settings)
+
+    def process_item(self, item, spider):
+        if not isinstance(item, Cacheable):
+            return item
+        in_cache = self.is_in_cache(item)
+        expired = in_cache and self.is_expired(item)
+        if in_cache and not expired:
+            raise DropItem("Item found in cache ({}) and not expired".format(
+                item.hash()))
+        elif not in_cache or expired:
+            spider.logger.debug("Adding item to cache: {}".format(
+                self.cache_filename(item)))
+            expires = spider._notification_expires
+            self.put_in_cache(item, expires)
+        return item
+
+    def cache_filename(self, item):
+        return os.path.join(self.cache_dir, item.hash())
+
+    def is_expired(self, item):
+        with open(self.cache_filename(item), "r") as f:
+            expires = float(f.readline().strip())
+        return expires and expires < time.time()
+
+    def is_in_cache(self, item):
+        return os.path.exists(self.cache_filename(item))
+
+    def put_in_cache(self, item, expires):
+        # if we have a non-zero expiration: add the current time
+        if expires:
+            expires += time.time()
+        with open(self.cache_filename(item), "w") as f:
+            f.write("{}\n".format(expires))
+            f.write("{}\n".format(str(item)))
 
 
 class SendEmailPipeline(object):
     def __init__(self, settings):
-        self.cache_dir = data_path(settings.get("DUPLICATECACHE_DIR"),
-                                   createdir=True)
         self.send_email = settings.get("SEND_NOTIFICATIONS", False)
         self.mailer = MailSender.from_settings(settings)
 
@@ -27,58 +69,11 @@ class SendEmailPipeline(object):
         return cls(crawler.settings)
 
     def process_item(self, item, spider):
-        if not isinstance(item, Emailable):
-            raise DropItem("%s received non-Emailable item" % (
-                self.__class__.__name__))
-        elif self.is_in_cache(item) and not self.is_expired(item, spider.notification_expires):
-            filename = os.path.basename(self.cache_filename(item))
-            raise DropItem("Already sent notification for item (%s), ignoring" % (
-                filename))
-
-        if self.send_email:
-            d = self.mailer.send(to=spider.settings.get("MAIL_TO"),
+        if isinstance(item, Emailable):
+            if self.send_email:
+                self.mailer.send(to=spider.settings.get("MAIL_TO"),
                                  subject=item.email_subject,
                                  body=item.email_body)
-            # add item to notification cache after a successful email
-            def put_in_cache_impl(result, item):
-                self.put_in_cache(item)
-                return result
-            d.addCallback(put_in_cache_impl, item)
-
+            else:
+                print("would have sent: %s" % (item.email_subject))
         return item
-
-    def is_expired(self, item, expires):
-        if not expires:
-            return False
-        seconds = {
-            "s": 1,
-            "m": 60,
-            "h": 60*60,
-            "d": 60*60*24,
-            "w": 60*60*24*7,
-            "y": 60*60*24*365.25,
-        }
-        value, unit = int(expires[:-1]), expires[-1]
-        expires_age = value * seconds[unit]
-        filename = self.cache_filename(item)
-        age = time.time() - os.stat(filename).st_mtime
-        return expires_age < age
-
-    def is_in_cache(self, item):
-        if not isinstance(item, Emailable):
-            return False
-        return os.path.exists(self.cache_filename(item))
-
-    def cache_filename(self, item):
-        md5 = hashlib.md5(item.email_subject.encode("utf-8")).hexdigest()
-        return os.path.join(self.cache_dir, md5)
-
-    def put_in_cache(self, item):
-        self.touch(self.cache_filename(item))
-
-    # taken from: http://stackoverflow.com/questions/1158076/ddg#1160227
-    def touch(self, fname, mode=0o666, dir_fd=None, **kwargs):
-        flags = os.O_CREAT | os.O_APPEND
-        with os.fdopen(os.open(fname, flags=flags, mode=mode, dir_fd=dir_fd)) as f:
-            os.utime(f.fileno() if os.utime in os.supports_fd else fname,
-                     dir_fd=None if os.supports_fd else dir_fd, **kwargs)
