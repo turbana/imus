@@ -9,19 +9,22 @@ from imus.items import RedditLink
 
 REDDIT_URL = "https://www.reddit.com"
 
+# NOTE: For reddit timestamps we need to check our datetime.now() (non-UTC)
+# versus reddit's "created_utc". I'm not sure why :(
+
 
 class RedditSpider(BaseSpider):
     allowed_domains = ["reddit.com"]
 
     def parse_response(self, response):
-        now = datetime.datetime.utcnow().timestamp()
+        now = datetime.datetime.now().timestamp()
         parsed_data = json.loads(response.text)
         for link in parsed_data["data"]["children"]:
             link = link["data"]
             item = RedditLink()
             item["title"] = link["title"]
             item["url"] = link["url"]
-            item["posted"] = int(link["created"])
+            item["posted"] = int(link["created_utc"])
             item["comments"] = int(link["num_comments"])
             item["comments_rate"] = item["comments"] / ((now - item["posted"]) / 60)
             item["comments_url"] = REDDIT_URL + link["permalink"]
