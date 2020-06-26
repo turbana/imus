@@ -7,9 +7,11 @@
 
 import subprocess
 
+from fake_useragent import UserAgent
+from selenium.webdriver import Firefox, FirefoxOptions, FirefoxProfile
 from scrapy import signals
-# from scrapy.downloadermiddlewares import DownloaderMiddleware
-from scrapy.exceptions import IgnoreRequest
+from scrapy.exceptions import IgnoreRequest, NotConfigured
+from scrapy_selenium.middlewares import SeleniumMiddleware
 
 
 class EnsureVPNActiveMiddleware:
@@ -41,3 +43,42 @@ class EnsureVPNActiveMiddleware:
         if status != 0:
             raise Exception("Non-zero exit status from: %s" % cmd)
         return output
+
+
+class CustomSeleniumMiddleware(SeleniumMiddleware):
+    def __init__(self, driver_name, driver_executable_path, driver_arguments,
+                 browser_executable_path):
+        self.driver_name = driver_name
+        self.driver_executable_path = driver_executable_path
+        self.driver_arguments = driver_arguments
+        self.browser_executable_path = browser_executable_path
+        self.initialized = False
+        self.driver = None
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        middleware = super().from_crawler(crawler)
+        crawler.signals.connect(middleware.spider_opened, signals.spider_opened)
+        return middleware
+
+    def spider_opened(self, spider):
+        if self.initialized:
+            return
+        self.__init_driver()
+
+    def __init_driver(self):
+        if self.driver_name.lower() != "firefox":
+            raise NotConfigured("SELENIUM_DRIVER_NAME must be set to 'firefox'")
+        options = FirefoxOptions()
+        if self.browser_executable_path:
+            options.binary_location = self.browser_executable_path
+        for arg in self.driver_arguments:
+            options.add_argument(arg)
+
+        useragent = UserAgent()
+        profile = FirefoxProfile()
+        profile.set_preference("general.useragent.override", useragent.random)
+
+        self.driver = Firefox(executable_path=self.driver_executable_path,
+                              firefox_options=options, firefox_profile=profile)
+        self.initialized = True

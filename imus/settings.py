@@ -66,7 +66,7 @@ DOWNLOADER_MIDDLEWARES = {
     'imus.middlewares.EnsureVPNActiveMiddleware': 1,
     'scrapy_fake_useragent.middleware.RandomUserAgentMiddleware': 400,
     'scrapy_fake_useragent.middleware.RetryUserAgentMiddleware': 401,
-    'scrapy_selenium.SeleniumMiddleware': 800,
+    'imus.middlewares.CustomSeleniumMiddleware': 800,
 }
 
 SELENIUM_DRIVER_NAME = "firefox"
