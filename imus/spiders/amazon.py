@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-from imus.spiders import BaseSpider
+from imus.spiders import SeleniumSpider
 from imus.items import GenericProduct
 
 
-class AmazonSpider(BaseSpider):
+class AmazonSpider(SeleniumSpider):
     allowed_domains = ["amazon.com"]
 
-    def parse_response(self, response):
+    def parse(self, response):
         item = GenericProduct()
         item["store"] = "Amazon"
         item["listing"] = response.url

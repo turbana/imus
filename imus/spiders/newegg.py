@@ -7,7 +7,7 @@ from imus.items import GenericProduct
 class NeweggSpider(SeleniumSpider):
     allowed_domains = ["newegg.com"]
 
-    def parse_response(self, response):
+    def parse(self, response):
         item = GenericProduct()
         item["store"] = "Newegg"
         item["listing"] = response.url

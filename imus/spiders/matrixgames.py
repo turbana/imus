@@ -3,14 +3,14 @@ import re
 
 from scrapy import Request
 
-from imus.spiders import BaseSpider
+from imus.spiders import SeleniumSpider
 from imus.items import ForumThread, ForumPost
 
 
-class MatrixGamesSpider(BaseSpider):
+class MatrixGamesSpider(SeleniumSpider):
     allowed_domains = ["matrixgames.com"]
 
-    def parse_response(self, response, *args, **kwargs):
+    def parse(self, response, *args, **kwargs):
         if "forums/tt.asp" in response.url:
             yield from self.parse_forum_listing(response, *args, **kwargs)
         elif "forums/tm.asp" in response.url:
@@ -21,18 +21,18 @@ class MatrixGamesSpider(BaseSpider):
         # classes or IDs. So we search for <a> tags pointing to a forum thread
         # (tm.asp), that are not pointing to paged thread ('mpage=?'). Then
         # we take the parent element two elements up
-        rows = response.xpath("//a[@href and starts-with(@href, 'tm.asp') and not(contains(@href, 'mpage'))]/../..")
+        rows = response.xpath("//a[@href and starts-with(@href, 'tm.asp') and not(contains(@href, 'mpage'))]/../../..")
 
         for elem in rows:
             item = ForumThread()
 
             item["pinned"] = "top" in elem.xpath("./td[3]/text()").get().lower()
-            item["title"] = elem.xpath("./td[3]/a/text()").get().strip()
+            item["title"] = elem.xpath("./td[3]//a/text()").get().strip()
             item["url"] = self.build_url(
-                response.url, elem.xpath("./td[3]/a/@href").get())
-            item["description"] = elem.xpath("./td[3]/a/@title").get()
+                response.url, elem.xpath("./td[3]//a/@href").get())
+            item["description"] = elem.xpath("./td[3]//a/@title").get()
             item["replies"] = int(elem.xpath("./td[4]/text()").get())
-            item["author"] = elem.xpath("./td[5]/a/text()").get().strip()
+            item["author"] = elem.xpath("./td[5]//a/text()").get().strip()
             item["views"] = int(elem.xpath("./td[6]/text()").get())
 
             yield item

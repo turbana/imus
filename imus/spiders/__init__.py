@@ -8,8 +8,20 @@ from scrapy import Spider, Item, Request
 from scrapy_selenium import SeleniumRequest
 
 
-class BaseSpider(Spider, ABC):
+class BasicSpider(Spider, ABC):
     notification_expires = "1d"
+
+    @abstractmethod
+    def parse(self, response):
+        pass
+
+    @abstractmethod
+    def matches(self, item):
+        pass
+
+    def start_requests(self):
+        for url in self.start_urls:
+            yield Request(url=url, callback=self.__parse_impl)
 
     @property
     def _notification_expires(self):
@@ -27,13 +39,13 @@ class BaseSpider(Spider, ABC):
         value, unit = int(expires[:-1]), expires[-1]
         return value * seconds[unit]
 
-    def parse(self, response, *args, **kwargs):
-        results = self._gather_responses(response, args, kwargs)
-        return self._gather_matches(results)
+    def __parse_impl(self, response, *args, **kwargs):
+        results = self.__gather_responses(response, args, kwargs)
+        return self.__gather_matches(results)
 
-    def _gather_responses(self, response, args, kwargs):
-        """ call `self.parse_response` and collect the results. """
-        result = self.parse_response(response, *args, **kwargs)
+    def __gather_responses(self, response, args, kwargs):
+        """ call `self.parse` and collect the results. """
+        result = self.parse(response, *args, **kwargs)
         if not result:
             return []
         if isinstance(result, Item):
@@ -47,7 +59,7 @@ class BaseSpider(Spider, ABC):
                 ))
         return result
 
-    def _gather_matches(self, results):
+    def __gather_matches(self, results):
         """ call `self.matches` and collect the results. """
         for obj in results:
             return_values = self.matches(obj)
@@ -58,14 +70,6 @@ class BaseSpider(Spider, ABC):
                     yield obj
                 elif isinstance(ret, (Item, Request)):
                     yield ret
-
-    @abstractmethod
-    def parse_response(self, response):
-        pass
-
-    @abstractmethod
-    def matches(self, item):
-        pass
 
     @staticmethod
     def relative_url(url):
@@ -79,7 +83,7 @@ class BaseSpider(Spider, ABC):
         return ret
 
 
-class SeleniumSpider(BaseSpider):
+class SeleniumSpider(BasicSpider):
     def start_requests(self):
         for url in self.start_urls:
-            yield SeleniumRequest(url=url, callback=self.parse)
+            yield SeleniumRequest(url=url, callback=self._BasicSpider__parse_impl)

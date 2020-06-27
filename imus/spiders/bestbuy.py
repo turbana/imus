@@ -7,9 +7,9 @@ from imus.items import GenericProduct
 class BestbuySpider(SeleniumSpider):
     allowed_domains = ["bestbuy.com"]
 
-    def parse_response(self, response):
+    def parse(self, response):
         if "You don't have permission" in response.text:
-            self.logger.error("Bestbuy blocked the request")
+            self.logger.warning("Bestbuy blocked the request")
             return
         item = GenericProduct()
         item["store"] = "Bestbuy"

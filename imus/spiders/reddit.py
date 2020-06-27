@@ -3,7 +3,7 @@ import datetime
 import json
 import re
 
-from imus.spiders import BaseSpider
+from imus.spiders import BasicSpider
 from imus.items import RedditLink
 
 
@@ -13,10 +13,10 @@ REDDIT_URL = "https://www.reddit.com"
 # versus reddit's "created_utc". I'm not sure why :(
 
 
-class RedditSpider(BaseSpider):
+class RedditSpider(BasicSpider):
     allowed_domains = ["reddit.com"]
 
-    def parse_response(self, response):
+    def parse(self, response):
         now = datetime.datetime.now().timestamp()
         parsed_data = json.loads(response.text)
         for link in parsed_data["data"]["children"]:
