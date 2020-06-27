@@ -10,15 +10,15 @@ class OfficeDepotSpider(BaseSpider):
         item = GenericProduct()
         item["store"] = "OfficeDepot"
         item["listing"] = response.url
-        item["condition"] = "new"
 
         # find price
         price = response.css("div.unified_price_row.red_price > span.price_column.right::text").get()
         item["price"] = self.parse_price(price)
 
         # find in stock
-        delivery = response.css("div.deliveryMessage > span::text").get()
-        item["in_stock"] = "out of stock" not in delivery.lower()
+        delivery = " ".join(response.css("div.deliveryMessage").xpath(".//text()").getall()).lower()
+        item["in_stock"] = "out of stock" not in delivery
+        item["condition"] = "backorder" if "estimated" in delivery else "new"
 
         # find product name
         heading = response.css("div#skuHeading > h1::text").get()
