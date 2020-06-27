@@ -12,6 +12,7 @@ from fake_useragent import UserAgent
 from scrapy import signals
 from scrapy.exceptions import IgnoreRequest, NotConfigured
 from scrapy.http import HtmlResponse
+from scrapy_selenium.http import SeleniumRequest
 from scrapy_selenium.middlewares import SeleniumMiddleware
 from selenium.webdriver import FirefoxOptions
 from seleniumwire.webdriver import Firefox
@@ -85,6 +86,9 @@ class CustomSeleniumMiddleware(SeleniumMiddleware):
         self.initialized = True
 
     def process_request(self, request, spider):
+        if not isinstance(request, SeleniumRequest):
+            return None
+
         # remove old seleniumwire responses
         del self.driver.requests
 
