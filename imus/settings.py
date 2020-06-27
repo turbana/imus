@@ -60,13 +60,32 @@ ROBOTSTXT_OBEY = False
 #DOWNLOADER_MIDDLEWARES = {
 #    'imus.middlewares.ImusDownloaderMiddleware': 543,
 #}
+
+# Scrapy's default middleware setup. Do not modify, use DOWNLOADER_MIDDLEWARES instead.
+# DOWNLOADER_MIDDLEWARE_BASE = {
+#     'scrapy.downloadermiddlewares.robotstxt.RobotsTxtMiddleware': 100,
+#     'scrapy.downloadermiddlewares.httpauth.HttpAuthMiddleware': 300,
+#     'scrapy.downloadermiddlewares.downloadtimeout.DownloadTimeoutMiddleware': 350,
+#     'scrapy.downloadermiddlewares.defaultheaders.DefaultHeadersMiddleware': 400,
+#     'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': 500,
+#     'scrapy.downloadermiddlewares.retry.RetryMiddleware': 550,
+#     'scrapy.downloadermiddlewares.ajaxcrawl.AjaxCrawlMiddleware': 560,
+#     'scrapy.downloadermiddlewares.redirect.MetaRefreshMiddleware': 580,
+#     'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware': 590,
+#     'scrapy.downloadermiddlewares.redirect.RedirectMiddleware': 600,
+#     'scrapy.downloadermiddlewares.cookies.CookiesMiddleware': 700,
+#     'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 750,
+#     'scrapy.downloadermiddlewares.stats.DownloaderStats': 850,
+#     'scrapy.downloadermiddlewares.httpcache.HttpCacheMiddleware': 900,
+# }
+
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
     'scrapy.downloadermiddlewares.retry.RetryMiddleware': None,
     'imus.middlewares.EnsureVPNActiveMiddleware': 1,
     'scrapy_fake_useragent.middleware.RandomUserAgentMiddleware': 400,
     'scrapy_fake_useragent.middleware.RetryUserAgentMiddleware': 401,
-    'imus.middlewares.CustomSeleniumMiddleware': 800,
+    'imus.middlewares.CustomSeleniumMiddleware': 950,
 }
 
 SELENIUM_DRIVER_NAME = "firefox"

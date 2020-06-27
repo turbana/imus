@@ -5,13 +5,16 @@
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
+from urllib.parse import urlparse
 import subprocess
 
 from fake_useragent import UserAgent
-from selenium.webdriver import Firefox, FirefoxOptions, FirefoxProfile
 from scrapy import signals
 from scrapy.exceptions import IgnoreRequest, NotConfigured
+from scrapy.http import HtmlResponse
 from scrapy_selenium.middlewares import SeleniumMiddleware
+from selenium.webdriver import FirefoxOptions
+from seleniumwire.webdriver import Firefox
 
 
 class EnsureVPNActiveMiddleware:
@@ -75,10 +78,42 @@ class CustomSeleniumMiddleware(SeleniumMiddleware):
         for arg in self.driver_arguments:
             options.add_argument(arg)
 
-        useragent = UserAgent()
-        profile = FirefoxProfile()
-        profile.set_preference("general.useragent.override", useragent.random)
+        self.options = options
 
         self.driver = Firefox(executable_path=self.driver_executable_path,
-                              firefox_options=options, firefox_profile=profile)
+                              firefox_options=options)
         self.initialized = True
+
+    def process_request(self, request, spider):
+        # remove old seleniumwire responses
+        del self.driver.requests
+
+        # setup seleniumwire to only save responses to the host we're hitting
+        url = urlparse(request.url)
+        self.driver.scopes = ['^{0}://{1}'.format(url.scheme, url.netloc)]
+
+        # setup fake User-Agent
+        self.driver.header_overrides = {
+            "User-Agent": UserAgent().random,
+        }
+
+        # call selenium for the request
+        response = super().process_request(request, spider)
+
+        # call seleniumwire for the response
+        http_request = self.driver.wait_for_request(request.url)
+        headers = http_request.response.headers
+
+        # the remote webserver might send us compressed data, but selenium
+        # seems to only return text, so just drop the Content-Encoding header
+        if headers.get("Content-Encoding", "").lower() == "gzip":
+            del headers["Content-Encoding"]
+
+        # and finally return a response with headers suitable for caching
+        return HtmlResponse(
+            url=response.url,
+            body=response.body,
+            encoding="utf-8",
+            request=request,
+            headers=headers
+        )
