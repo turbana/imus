@@ -6,7 +6,7 @@ from imus.items import GenericProduct
 class AmazonSpider(BaseSpider):
     allowed_domains = ["amazon.com"]
 
-    def parse_reponse(self, response):
+    def parse_response(self, response):
         item = GenericProduct()
         item["store"] = "Amazon"
         item["listing"] = response.url
