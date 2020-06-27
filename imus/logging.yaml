@@ -67,3 +67,9 @@ root:
 loggers:
   scrapy.core.scraper:
     filters: [ignore_dropped_items]
+  seleniumwire.proxy.handler:
+    level: WARNING
+  selenium.webdriver.remote.remote_connection:
+    level: INFO
+  urllib3.connectionpool:
+    level: INFO
