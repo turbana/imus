@@ -152,3 +152,7 @@ class JobBlurb(Cacheable, Item):
     listing = Field()
     is_ad = Field()
     scraped_at = Field()
+
+
+class JobListing(JobBlurb):
+    full_listing = Field()

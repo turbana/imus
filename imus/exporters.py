@@ -27,6 +27,8 @@ class JobsOrgModeExporter(BaseItemExporter):
         fields["summary"] = fields["summary"].replace("\n", " ")
         fields["remote"] = "(Remote) " if item["is_remote"] else ""
         fields["ad"] = " (advertisement)" if item["is_ad"] else ""
+        # line "full_listing" up with rest of text for dedent()
+        fields["full_listing"] = fields["full_listing"].replace("\n", "\n\n        ")
         self.write(dedent("""
         * TOAPPLY {title} at {company}
         :PROPERTIES:
@@ -50,10 +52,9 @@ class JobsOrgModeExporter(BaseItemExporter):
         - Salary :: {salary_info}
         - Summary :: {summary}
 
-        #+BEGIN_POSTING
-        long posting
-        goes here
-        #+END_POSTING
+        #+BEGIN_LISTING
+        {full_listing}
+        #+END_LISTING
 
         ** Log
         """.format(**fields)))
