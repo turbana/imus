@@ -137,3 +137,18 @@ class ForumPost(Cacheable, Emailable, Item):
             {text}
             """
         ).format(**self)
+
+
+class JobBlurb(Cacheable, Item):
+    cache_on = ("listing",)
+    title = Field()
+    company = Field()
+    location = Field()
+    summary = Field()
+    salary_info = Field()
+    is_remote = Field()
+    company_rating = Field()
+    source = Field()
+    listing = Field()
+    is_ad = Field()
+    scraped_at = Field()

@@ -134,6 +134,9 @@ HTTPCACHE_DIR = 'cache/http'
 HTTPCACHE_IGNORE_HTTP_CODES = []
 HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
+FEED_EXPORTERS = {
+    "jobsorg": "imus.exporters.JobsOrgModeExporter",
+}
 FEEDS = {
     "/dev/null": {
         "format": "json",
