@@ -4,7 +4,6 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-import hashlib
 import os.path
 import time
 
@@ -27,36 +26,41 @@ class DuplicateItemCachePipeline(object):
     def process_item(self, item, spider):
         if not isinstance(item, Cacheable):
             return item
-        in_cache = self.is_in_cache(item)
-        expired = in_cache and self.is_expired(item)
+        filename = self.cache_filename(item, spider)
+        in_cache = self.is_in_cache(filename)
+        expired = in_cache and self.is_expired(filename)
         if in_cache and not expired:
             raise DropItem("Item found in cache ({}) and not expired".format(
                 item.hash()))
         elif not in_cache or expired:
             spider.logger.debug("Adding item to cache: {}".format(
-                self.cache_filename(item)))
+                item.hash()))
             expires = spider._notification_expires
-            self.put_in_cache(item, expires)
+            self.put_in_cache(filename, item, expires)
         return item
 
-    def cache_filename(self, item):
-        return os.path.join(self.cache_dir, item.hash())
+    def cache_filename(self, item, spider):
+        hash = item.hash()
+        return os.path.join(self.cache_dir, spider.name, hash[:2], hash)
 
-    def is_expired(self, item):
-        with open(self.cache_filename(item), "r") as f:
+    def is_expired(self, filename):
+        with open(filename, "r") as f:
             expires = float(f.readline().strip())
         return expires and expires < time.time()
 
-    def is_in_cache(self, item):
-        return os.path.exists(self.cache_filename(item))
+    def is_in_cache(self, filename):
+        return os.path.exists(filename)
 
-    def put_in_cache(self, item, expires):
+    def put_in_cache(self, filename, item, expires):
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
         # if we have a non-zero expiration: add the current time
         if expires:
             expires += time.time()
-        with open(self.cache_filename(item), "w") as f:
-            f.write("{}\n".format(expires))
-            f.write("{}\n".format(str(item)))
+        with open(filename, "w") as f:
+            f.write("{expires}\n{cls}({item})\n".format(
+                expires=expires,
+                cls=type(item).__name__,
+                item=str(item)))
 
 
 class SendEmailPipeline(object):
