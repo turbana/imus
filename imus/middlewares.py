@@ -94,7 +94,7 @@ class CustomSeleniumMiddleware(SeleniumMiddleware):
 
         # setup seleniumwire to only save responses to the host we're hitting
         url = urlparse(request.url)
-        self.driver.scopes = ['{0}://{1}'.format(url.scheme, url.netloc)]
+        self.driver.scopes = ['{0}://.*{1}'.format(url.scheme, url.netloc)]
 
         # setup fake User-Agent
         self.driver.header_overrides = {
@@ -105,7 +105,7 @@ class CustomSeleniumMiddleware(SeleniumMiddleware):
         response = super().process_request(request, spider)
 
         # call seleniumwire for the response
-        http_request = self.driver.wait_for_request(request.url)
+        http_request = self.driver.wait_for_request(response.url)
         headers = http_request.response.headers
 
         # the remote webserver might send us compressed data, but selenium
