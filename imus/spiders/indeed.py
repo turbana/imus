@@ -80,7 +80,7 @@ class IndeedJobSearchSpider(IndeedSpider):
                                                   location=enc(loc))
                            for title in self.url_job_titles
                            for loc in self.url_job_locations]
-        super().start_requests()
+        return super().start_requests()
 
     def matches(self, item):
         if isinstance(item, JobBlurb):
