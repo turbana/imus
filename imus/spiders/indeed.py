@@ -50,8 +50,20 @@ class IndeedSpider(SeleniumSpider):
 
 class IndeedJobSearchSpider(IndeedSpider):
     name = "jobs_indeed"
+    url_job_titles = [
+        "software engineer",
+        "software developer",
+        "computer programmer",
+    ]
+    url_job_locations = [
+        "Tacoma, WA",
+        "Kent, WA",
+        "Seattle, WA",
+    ]
+    url_format = "https://www.indeed.com/jobs?q={title}&l={location}"
     start_urls = [
-        "https://www.indeed.com/jobs?q=software+engineer&l=Kent%2C+WA",
+        # filled in start_requests()
+        # "https://www.indeed.com/jobs?q=software+engineer&l=Kent%2C+WA",
     ]
     title_must_contain = [
         "software", "programmer", "programming", "develop", "devop",
@@ -60,6 +72,15 @@ class IndeedJobSearchSpider(IndeedSpider):
     title_must_not_contain = [
         "senior", "director", "lead", "test"
     ]
+
+    def start_requests(self):
+        def enc(s):
+            return s.replace(",", "%2C").replace(" ", "+")
+        self.start_urls = [self.url_format.format(title=enc(title),
+                                                  location=enc(loc))
+                           for title in self.url_job_titles
+                           for loc in self.url_job_locations]
+        super().start_requests()
 
     def matches(self, item):
         if isinstance(item, JobBlurb):
