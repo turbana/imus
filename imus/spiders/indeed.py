@@ -67,10 +67,10 @@ class IndeedJobSearchSpider(IndeedSpider):
     ]
     title_must_contain = [
         "software", "programmer", "programming", "develop", "devop",
-        "engineer", "game"
+        "engineer", "game",
     ]
     title_must_not_contain = [
-        "senior", "director", "lead", "test"
+        "senior", "director", "lead", "test", "manager",
     ]
 
     def start_requests(self):
